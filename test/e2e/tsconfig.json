@@ -5,5 +5,5 @@
       "@shared/*": ["../../shared/*"]
     }
   },
-  "include": ["./**/*", "../../shared/types/**/*"]
+  "include": ["./**/*", "../../shared/types/**/*", "../fixtures/**/*"]
 }

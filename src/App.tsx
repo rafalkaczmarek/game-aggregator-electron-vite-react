@@ -1,6 +1,6 @@
-import GameLibrary from '@/components/GameLibrary'
-import Settings from '@/components/Settings'
-import UpdateElectron from '@/components/update'
+import GameLibrary from '@src/components/GameLibrary'
+import Settings from '@src/components/Settings'
+import UpdateElectron from '@src/components/update'
 import logoTailwind from './assets/logo-tailwindcss.svg'
 
 function App() {

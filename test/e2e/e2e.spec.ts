@@ -11,6 +11,8 @@ import {
   _electron as electron,
 } from '@playwright/test'
 import type { BrowserWindow } from 'electron'
+import type { AggregatedLibrary } from '@shared/types/game'
+import { createMockLibrary } from '../fixtures/games'
 
 const root = path.resolve(import.meta.dirname, '..', '..')
 const e2eUserData = path.join(root, 'test', 'e2e-user-data')
@@ -95,15 +97,71 @@ test.describe('[game-aggregator] e2e tests', () => {
     await page.click('button:has-text("Scan libraries")')
     await page.waitForSelector('text=Last scan:')
 
-    const platformRows = await page.$$('ul li')
+    const platformRows = await page.locator('[data-testid="platform-summary"] li').all()
     expect(platformRows).toHaveLength(4)
 
     for (const platform of ['steam', 'gog', 'epic', 'psn']) {
-      await expect(page.locator('li', { hasText: platform })).toBeVisible()
+      await expect(page.locator('[data-testid="platform-summary"] li', { hasText: platform })).toBeVisible()
     }
 
-    const steamRow = page.locator('li', { hasText: 'steam' })
+    const steamRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'steam' })
     await expect(steamRow).not.toContainText('not implemented')
+  })
+
+  async function setScanAllMock(library: AggregatedLibrary | null) {
+    await page.evaluate((data) => {
+      window.__e2e.setScanAllMock(data)
+    }, library)
+  }
+
+  test.describe('game library views', () => {
+    const mockLibrary = createMockLibrary()
+
+    test.beforeEach(async () => {
+      await page.reload()
+      await page.waitForSelector('button:has-text("Scan libraries")')
+      await setScanAllMock(null)
+    })
+
+    test.afterEach(async () => {
+      await setScanAllMock(null)
+    })
+
+    test('shows games in grid view by default after scan', async () => {
+      await setScanAllMock(mockLibrary)
+
+      await page.click('button:has-text("Scan libraries")')
+      await expect(page.getByText('Your games')).toBeVisible()
+      await expect(page.getByTestId('game-library-grid')).toBeVisible()
+      await expect(page.getByText('Alan Wake')).toBeVisible()
+      await expect(page.getByText('Cyberpunk 2077')).toBeVisible()
+      await expect(page.getByText('Dota 2')).toBeVisible()
+      await expect(page.getByText('— 3 games')).toBeVisible()
+    })
+
+    test('switches between grid and list views', async () => {
+      await setScanAllMock(mockLibrary)
+
+      await page.click('button:has-text("Scan libraries")')
+      await expect(page.getByTestId('game-library-grid')).toBeVisible()
+
+      await page.getByRole('button', { name: 'List view' }).click()
+      await expect(page.getByTestId('game-library-list')).toBeVisible()
+      await expect(page.getByTestId('game-library-grid')).toHaveCount(0)
+
+      await page.getByRole('button', { name: 'Grid view' }).click()
+      await expect(page.getByTestId('game-library-grid')).toBeVisible()
+      await expect(page.getByTestId('game-library-list')).toHaveCount(0)
+    })
+
+    test('shows empty state when scan returns no games', async () => {
+      await setScanAllMock(createMockLibrary([]))
+
+      await page.click('button:has-text("Scan libraries")')
+      await expect(page.getByText(/No games found/i)).toBeVisible()
+      await expect(page.getByRole('button', { name: 'List view' })).toHaveCount(0)
+      await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
+    })
   })
 
   test('steam platform scan returns a result via IPC', async () => {

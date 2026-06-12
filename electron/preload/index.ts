@@ -2,8 +2,10 @@ import { ipcRenderer, contextBridge } from 'electron'
 import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
 import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/types/settings'
 
+let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
+
 const gameApi = {
-  scanAll: (): Promise<AggregatedLibrary> => ipcRenderer.invoke('games:scan-all'),
+  scanAll: (): Promise<AggregatedLibrary> => scanAllImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
 }
@@ -16,6 +18,13 @@ const settingsApi: SettingsApi = {
 
 contextBridge.exposeInMainWorld('gameApi', gameApi)
 contextBridge.exposeInMainWorld('settingsApi', settingsApi)
+contextBridge.exposeInMainWorld('__e2e', {
+  setScanAllMock(result: AggregatedLibrary | null) {
+    scanAllImpl = result
+      ? () => Promise.resolve(result)
+      : () => ipcRenderer.invoke('games:scan-all')
+  },
+})
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {

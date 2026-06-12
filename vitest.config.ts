@@ -1,8 +1,19 @@
+import path from 'node:path'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@src': path.join(__dirname, 'src'),
+      '@shared': path.join(__dirname, 'shared'),
+    },
+  },
   test: {
     root: __dirname,
+    environment: 'jsdom',
+    setupFiles: ['test/setup.ts'],
     include: ['test/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
     exclude: ['test/e2e/**'],
     passWithNoTests: true,
