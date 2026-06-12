@@ -1,0 +1,31 @@
+---
+description: Cel projektu, stack i plan integracji platform gamingowych
+alwaysApply: true
+---
+
+# Game Aggregator — kontekst projektu
+
+Desktopowa aplikacja (Electron + Vite + React + TypeScript) agregująca gry z wielu platform w jednej liście.
+
+## Stack
+
+- **Electron** (nie Tauri) — szybszy MVP, jeden język TS, npm (`psn-api`, parsery VDF)
+- **Main process** — skanery, API, tokeny; **renderer** — tylko UI
+- **IPC** przez `contextBridge` + `ipcMain.handle`; bez `nodeIntegration` w rendererze
+
+## Platformy (kolejność MVP)
+
+1. **Steam** — VDF + `steamapps/*.acf` + Steam Web API (najłatwiejsze)
+2. **GOG** — SQLite GOG Galaxy (`%ProgramData%\GOG.com\Galaxy\storage\`)
+3. **Epic** — manifesty w `%PROGRAMDATA%\Epic\EpicGamesLauncher\Data\Manifests\`
+4. **PSN** — nieoficjalne API (`psn-api`), PSN ID + publiczny profil; token `npsso` w main process
+
+## Wspólny model
+
+Typ `Game` w `shared/types/game.ts`. Każdy skaner zwraca `Game[]`; aggregator scala i deduplikuje.
+
+## Zasady
+
+- Sekrety (`npsso`, Steam API key) tylko w main process / bezpiecznym storage
+- Skanery w `electron/scanners/` — jeden plik per platforma
+- Szczegóły architektury: `docs/ARCHITECTURE.md`

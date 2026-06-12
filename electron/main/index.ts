@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import { registerGameIpcHandlers } from './ipc/games'
 import { update } from './update'
 
 const require = createRequire(import.meta.url)
@@ -45,7 +46,7 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Game Aggregator',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
@@ -80,6 +81,8 @@ async function createWindow() {
   // Auto update
   update(win)
 }
+
+registerGameIpcHandlers()
 
 app.whenReady().then(createWindow)
 

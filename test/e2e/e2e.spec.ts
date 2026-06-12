@@ -68,19 +68,19 @@ test.afterAll(async () => {
   }
 })
 
-test.describe('[electron-vite-react] e2e tests', () => {
+test.describe('[game-aggregator] e2e tests', () => {
   test('startup', async () => {
     const title = await page.title()
     expect(title).toBe('Electron + Vite + React')
   })
 
-  test('should be home page is load correctly', async () => {
+  test('shows game aggregator home page', async () => {
     const h1 = await page.$('h1')
     const title = await h1?.textContent()
-    expect(title).toBe('A sharp starter with Tailwind-first styling.')
+    expect(title).toBe('Wszystkie gry w jednym miejscu.')
   })
 
-  test('should be count button can click', async () => {
+  test('counter demo increments on click', async () => {
     const countButton = await page.$('button:has-text("Increment counter")')
     const countValue = await page.$('div.text-5xl')
 
@@ -91,5 +91,17 @@ test.describe('[electron-vite-react] e2e tests', () => {
 
     const valueAfterClick = await countValue?.textContent()
     expect(valueAfterClick).toBe('1')
+  })
+
+  test('scan libraries shows platform results', async () => {
+    await page.click('button:has-text("Scan libraries")')
+    await page.waitForSelector('text=Last scan:')
+
+    const platformRows = await page.$$('ul li')
+    expect(platformRows).toHaveLength(4)
+
+    for (const platform of ['steam', 'gog', 'epic', 'psn']) {
+      await expect(page.locator('li', { hasText: platform })).toBeVisible()
+    }
   })
 })

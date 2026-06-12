@@ -13,6 +13,7 @@ dist-ssr
 dist-electron
 release
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/.debug.env
@@ -24,9 +25,8 @@ release
 *.sln
 *.sw?
 
-#lockfile
+#lockfile (pnpm-lock.yaml is committed for reproducible installs)
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
 /test-results/
 /playwright-report/

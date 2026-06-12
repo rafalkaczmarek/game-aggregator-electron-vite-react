@@ -1,4 +1,13 @@
 import { ipcRenderer, contextBridge } from 'electron'
+import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
+
+const gameApi = {
+  scanAll: (): Promise<AggregatedLibrary> => ipcRenderer.invoke('games:scan-all'),
+  scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
+    ipcRenderer.invoke('games:scan-platform', platform),
+}
+
+contextBridge.exposeInMainWorld('gameApi', gameApi)
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {

@@ -1,0 +1,43 @@
+---
+description: Konwencje main process, IPC i skanerów platform
+globs: electron/**/*
+alwaysApply: false
+---
+
+# Electron — skanery i IPC
+
+## Struktura
+
+```
+electron/
+  main/index.ts      # rejestracja IPC, okno
+  main/ipc/games.ts  # handlery games:*
+  scanners/
+    steam.ts | gog.ts | epic.ts | psn.ts
+    index.ts         # scanAllGames()
+```
+
+## IPC
+
+- Kanały: `games:scan-all`, `games:scan-platform` (arg: `GamePlatform`)
+- Handlery w main; renderer woła przez `window.gameApi` (preload)
+
+## Skaner — kontrakt
+
+```typescript
+export async function scanSteam(): Promise<ScanResult> {
+  return { platform: 'steam', games: [], errors: [] }
+}
+```
+
+- Zwracaj `errors[]` zamiast rzucać — częściowy sukces jest OK
+- Nie blokuj UI — długie skanowanie przez `invoke` (async)
+
+## Platformy
+
+| Platforma | Źródło | Uwagi |
+|-----------|--------|-------|
+| Steam | pliki lokalne + API | `libraryfolders.vdf`, `.acf` |
+| GOG | SQLite Galaxy | format nieudokumentowany |
+| Epic | manifesty JSON | biblioteka może być niepełna lokalnie |
+| PSN | `psn-api` + HTTP | brak danych na dysku; profil publiczny |

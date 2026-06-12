@@ -1,6 +1,10 @@
 /// <reference types="vite/client" />
 
-interface Window {
-  // expose in the `electron/preload/index.ts`
-  ipcRenderer: import('electron').IpcRenderer
+export {}
+
+declare global {
+  interface Window {
+    gameApi: import('@shared/types/game').GameApi
+    ipcRenderer: import('electron').IpcRenderer
+  }
 }

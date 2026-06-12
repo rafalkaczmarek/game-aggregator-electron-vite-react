@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import GameLibrary from '@/components/GameLibrary'
 import UpdateElectron from '@/components/update'
 import logoVite from './assets/logo-vite.svg'
 import logoElectron from './assets/logo-electron.svg'
@@ -20,14 +21,15 @@ function App() {
             <div className='flex flex-col justify-between gap-8'>
               <div className='space-y-6'>
                 <div className='inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-cyan-800'>
-                  Electron + Vite + React + Tailwind
+                  Game Aggregator
                 </div>
                 <div className='space-y-4'>
                   <h1 className='max-w-xl text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl'>
-                    Modern starter, cleaner rhythm, unified visual language.
+                    Wszystkie gry w jednym miejscu.
                   </h1>
                   <p className='max-w-2xl text-base leading-7 text-slate-600 sm:text-lg'>
-                    Refined spacing, balanced contrast, and consistent cards make the page feel more polished while keeping all demo functionality intact.
+                    Steam, GOG, Epic i PSN — jedna lista. Skanery działają w main process; szczegóły w{' '}
+                    <code>docs/ARCHITECTURE.md</code>.
                   </p>
                 </div>
               </div>
@@ -73,6 +75,8 @@ function App() {
             </div>
           </div>
         </section>
+
+        <GameLibrary />
 
         <section className='grid gap-4 md:grid-cols-3'>
           <div className='rounded-3xl border border-slate-200 bg-white p-6 text-slate-800 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
