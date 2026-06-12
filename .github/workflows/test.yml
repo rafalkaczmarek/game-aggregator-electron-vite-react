@@ -1,0 +1,91 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.idea/**'
+      - '.vscode/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.idea/**'
+      - '.vscode/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Unit Tests
+        run: pnpm test
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Linux Dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run E2E Tests
+        run: pnpm test:e2e
+
+      - name: Upload E2E Screenshot
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-screenshot
+          path: test/screenshots/e2e.png
+          if-no-files-found: ignore
+          retention-days: 7
