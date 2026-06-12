@@ -14,9 +14,13 @@ import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
 import { createMockLibrary } from '../fixtures/games'
 import {
+  collectRendererCoverage,
   e2eCoverageEnabled,
+  generateE2eCoverageReport,
+  nodeCoverageDir,
+  prepareNodeCoverageDir,
   startPageCoverage,
-  stopPageCoverageAndReport,
+  type RendererCoverageEntry,
 } from './coverage'
 
 const root = path.resolve(import.meta.dirname, '..', '..')
@@ -49,6 +53,10 @@ test.beforeAll(async () => {
   test.setTimeout(30000)
   await startXvfbOnLinux()
 
+  if (e2eCoverageEnabled) {
+    await prepareNodeCoverageDir()
+  }
+
   electronApp = await electron.launch({
     args: ['.', '--no-sandbox'],
     cwd: root,
@@ -58,6 +66,7 @@ test.beforeAll(async () => {
       E2E_TEST: '1',
       ELECTRON_USER_DATA: e2eUserData,
       STEAM_API_KEY: '',
+      ...(e2eCoverageEnabled ? { NODE_V8_COVERAGE: nodeCoverageDir } : {}),
     },
   })
   page = await electronApp.firstWindow()
@@ -73,9 +82,11 @@ test.beforeAll(async () => {
 })
 
 test.afterAll(async () => {
+  let rendererCoverage: RendererCoverageEntry[] = []
+
   if (page) {
     if (e2eCoverageEnabled) {
-      await stopPageCoverageAndReport(page)
+      rendererCoverage = await collectRendererCoverage(page)
     }
 
     await page.screenshot({ path: 'test/screenshots/e2e.png' })
@@ -84,6 +95,10 @@ test.afterAll(async () => {
 
   if (electronApp) {
     await electronApp.close()
+  }
+
+  if (e2eCoverageEnabled) {
+    await generateE2eCoverageReport(rendererCoverage)
   }
 
   if (xvfbProcess?.pid) {
@@ -169,10 +184,52 @@ test.describe('[game-aggregator] e2e tests', () => {
       await page.getByRole('button', { name: 'List view' }).click()
       await expect(page.getByTestId('game-library-list')).toBeVisible()
       await expect(page.getByTestId('game-library-grid')).toHaveCount(0)
+      await expect(page.getByText('Not played')).toBeVisible()
+      await expect(page.getByText('2.1 hrs')).toBeVisible()
 
       await page.getByRole('button', { name: 'Grid view' }).click()
       await expect(page.getByTestId('game-library-grid')).toBeVisible()
       await expect(page.getByTestId('game-library-list')).toHaveCount(0)
+    })
+
+    test('formats long playtime in list view', async () => {
+      const library = createMockLibrary([
+        {
+          id: 'steam-long',
+          platform: 'steam',
+          title: 'Long Game',
+          installed: true,
+          playtimeMinutes: 615,
+          sourceId: 'long',
+        },
+      ])
+
+      await setScanAllMock(library)
+      await page.click('button:has-text("Scan libraries")')
+      await page.getByRole('button', { name: 'List view' }).click()
+
+      await expect(page.getByText('10 hrs')).toBeVisible()
+    })
+
+    test('shows cover placeholder when image fails to load', async () => {
+      const libraryWithBrokenCover = createMockLibrary([
+        {
+          id: 'steam-broken',
+          platform: 'steam',
+          title: 'Broken Cover Game',
+          installed: true,
+          coverUrl: 'https://invalid.invalid/cover.jpg',
+          sourceId: 'broken',
+        },
+      ])
+
+      await setScanAllMock(libraryWithBrokenCover)
+      await page.click('button:has-text("Scan libraries")')
+      await expect(page.getByText('Broken Cover Game')).toBeVisible()
+
+      const grid = page.getByTestId('game-library-grid')
+      await expect(grid.locator('img')).toHaveCount(0)
+      await expect(grid.locator('svg')).toHaveCount(1)
     })
 
     test('shows empty state when scan returns no games', async () => {
@@ -265,6 +322,19 @@ test.describe('[game-aggregator] e2e tests', () => {
     expect(result.errors.some((error) => error.includes('not implemented'))).toBe(false)
   })
 
+  test('rejects unknown platform via IPC', async () => {
+    const error = await page.evaluate(async () => {
+      try {
+        await window.gameApi.scanPlatform('xbox' as 'steam')
+        return null
+      } catch (caught) {
+        return caught instanceof Error ? caught.message : String(caught)
+      }
+    })
+
+    expect(error).toContain('Unknown platform')
+  })
+
   test.describe('settings', () => {
     test.afterEach(async () => {
       await page.evaluate(() => window.settingsApi.update({ steamApiKey: '' }))
@@ -284,6 +354,18 @@ test.describe('[game-aggregator] e2e tests', () => {
       await page.waitForSelector('#steam-api-key')
       await page.getByRole('button', { name: 'Save settings' }).click()
       await expect(page.getByText('No API key provided.')).toBeVisible()
+    })
+
+    test('keeps existing key when saving empty form', async () => {
+      await page.fill('#steam-api-key', 'e2e-existing-key')
+      await page.getByRole('button', { name: 'Save settings' }).click()
+      await expect(page.getByText('Steam API key saved.')).toBeVisible()
+
+      await page.getByRole('button', { name: 'Save settings' }).click()
+      await expect(page.getByText('Existing API key kept unchanged.')).toBeVisible()
+
+      const configured = await page.evaluate(() => window.settingsApi.get())
+      expect(configured.steamApiKeySet).toBe(true)
     })
 
     test('saves and clears steam api key through UI', async () => {
