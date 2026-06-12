@@ -4,6 +4,7 @@ import { GAME_PLATFORMS } from '../../../shared/types/game'
 import { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } from '../library/store'
 import { scanAllGames, scanPlatform } from '../../scanners'
 import { setE2eGalaxyDbPath } from '../../scanners/gog/paths'
+import { setE2ePsnFixture, type PsnE2eFixture } from '../../scanners/psn/e2e'
 
 export function registerGameIpcHandlers(): void {
   ipcMain.handle('games:get-library', () => readCachedLibrary())
@@ -15,6 +16,9 @@ export function registerGameIpcHandlers(): void {
     ipcMain.handle('e2e:clear-library-cache', () => clearCachedLibrary())
     ipcMain.handle('e2e:set-gog-galaxy-db', (_event, dbPath: string | null) => {
       setE2eGalaxyDbPath(dbPath)
+    })
+    ipcMain.handle('e2e:set-psn-fixture', (_event, fixture: PsnE2eFixture | null) => {
+      setE2ePsnFixture(fixture)
     })
   }
 

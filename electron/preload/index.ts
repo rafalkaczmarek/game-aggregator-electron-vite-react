@@ -1,6 +1,7 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
 import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/types/settings'
+import type { PsnE2eFixture } from '../scanners/psn/e2e'
 
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
 
@@ -33,6 +34,9 @@ contextBridge.exposeInMainWorld('__e2e', {
   },
   setGogGalaxyDbPath(dbPath: string | null) {
     return ipcRenderer.invoke('e2e:set-gog-galaxy-db', dbPath)
+  },
+  setPsnFixture(fixture: PsnE2eFixture | null) {
+    return ipcRenderer.invoke('e2e:set-psn-fixture', fixture)
   },
 })
 

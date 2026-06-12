@@ -29,5 +29,8 @@ test.describe('startup', () => {
 
     const steamRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'steam' })
     await expect(steamRow).not.toContainText('not implemented')
+
+    const psnRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'psn' })
+    await expect(psnRow).not.toContainText('not implemented')
   })
 })

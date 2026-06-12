@@ -12,6 +12,7 @@ import {
 } from '@playwright/test'
 import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
+import type { PsnE2eFixture } from '../../electron/scanners/psn/e2e'
 import {
   collectRendererCoverage,
   e2eCoverageEnabled,
@@ -71,6 +72,8 @@ export const test = base.extend<{}, { electronWorker: ElectronWorker }>({
           E2E_TEST: '1',
           ELECTRON_USER_DATA: e2eUserData,
           STEAM_API_KEY: '',
+          PSN_NPSSO: '',
+          PSN_ONLINE_ID: '',
           ...(e2eCoverageEnabled ? { NODE_V8_COVERAGE: nodeCoverageDir } : {}),
         },
       })
@@ -128,4 +131,18 @@ export async function clearLibraryCache(page: Page) {
 
 export async function setGogGalaxyDb(page: Page, dbPath: string | null) {
   await page.evaluate((target) => window.__e2e.setGogGalaxyDbPath(target), dbPath)
+}
+
+export async function setPsnFixture(page: Page, fixture: PsnE2eFixture | null) {
+  await page.evaluate((target) => window.__e2e.setPsnFixture(target), fixture)
+}
+
+export async function configurePsnScan(page: Page, fixture: PsnE2eFixture | null) {
+  await page.evaluate(async (target) => {
+    await window.settingsApi.update({
+      psnNpsso: target ? 'e2e-npsso-token' : '',
+      psnOnlineId: '',
+    })
+    await window.__e2e.setPsnFixture(target)
+  }, fixture)
 }

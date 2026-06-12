@@ -14,6 +14,17 @@ test.describe('platform scan', () => {
     expect(result.errors.some((error) => error.includes('not implemented'))).toBe(false)
   })
 
+  test('psn platform scan returns a result via IPC', async ({ page }) => {
+    test.setTimeout(60_000)
+
+    const result = await page.evaluate(() => window.gameApi.scanPlatform('psn'))
+
+    expect(result.platform).toBe('psn')
+    expect(Array.isArray(result.games)).toBe(true)
+    expect(Array.isArray(result.errors)).toBe(true)
+    expect(result.errors.some((error) => error.includes('not implemented'))).toBe(false)
+  })
+
   test('rejects unknown platform via IPC', async ({ page }) => {
     const error = await page.evaluate(async () => {
       try {

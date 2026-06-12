@@ -65,7 +65,7 @@ test.describe('GOG scanner', () => {
     expect(epicResult?.games).toHaveLength(0)
     expect(epicResult?.errors[0]).toContain('not implemented')
     expect(psnResult?.games).toHaveLength(0)
-    expect(psnResult?.errors[0]).toContain('not implemented')
+    expect(psnResult?.errors[0]).toContain('NPSSO')
   })
 
   test('scan libraries UI shows GOG games from Galaxy fixture database', async ({ page }) => {

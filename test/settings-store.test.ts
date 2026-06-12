@@ -39,7 +39,10 @@ describe('settings store', () => {
     const { getSteamApiKey, getSettingsState } = await loadStore()
 
     await expect(getSteamApiKey()).resolves.toBe('env-key')
-    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: true })
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: true,
+      psnNpssoSet: false,
+    })
   })
 
   it('persists and reads steam api key from user data', async () => {
@@ -47,7 +50,10 @@ describe('settings store', () => {
 
     await updateSteamApiKey('  stored-key  ')
     await expect(getSteamApiKey()).resolves.toBe('stored-key')
-    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: true })
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: true,
+      psnNpssoSet: false,
+    })
 
     const raw = await readFile(path.join(tmpDir, 'settings.json'), 'utf8')
     expect(JSON.parse(raw)).toHaveProperty('steamApiKeyEnc')
@@ -59,7 +65,10 @@ describe('settings store', () => {
     await updateSteamApiKey('to-remove')
     await updateSteamApiKey('')
     await expect(getSteamApiKey()).resolves.toBeUndefined()
-    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: false })
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: false,
+    })
   })
 
   it('uses safe storage when encryption is available', async () => {
@@ -102,5 +111,31 @@ describe('settings store', () => {
 
     const { getSteamApiKey } = await loadStore()
     await expect(getSteamApiKey()).resolves.toBeUndefined()
+  })
+
+  it('persists and reads psn npsso from user data', async () => {
+    const { updatePsnNpsso, getPsnNpsso, getSettingsState } = await loadStore()
+
+    await updatePsnNpsso('  stored-npsso  ')
+    await expect(getPsnNpsso()).resolves.toBe('stored-npsso')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: true,
+    })
+
+    const raw = await readFile(path.join(tmpDir, 'settings.json'), 'utf8')
+    expect(JSON.parse(raw)).toHaveProperty('psnNpssoEnc')
+  })
+
+  it('persists psn online id as plain text', async () => {
+    const { updatePsnOnlineId, getPsnOnlineId, getSettingsState } = await loadStore()
+
+    await updatePsnOnlineId('  player-one  ')
+    await expect(getPsnOnlineId()).resolves.toBe('player-one')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: false,
+      psnOnlineId: 'player-one',
+    })
   })
 })

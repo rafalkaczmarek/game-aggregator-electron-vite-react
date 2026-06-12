@@ -4,9 +4,13 @@ import path from 'node:path'
 
 interface StoredSettings {
   steamApiKeyEnc?: string
+  psnNpssoEnc?: string
+  psnOnlineId?: string
 }
 
 let cachedSteamApiKey: string | undefined | null = null
+let cachedPsnNpsso: string | undefined | null = null
+let cachedPsnOnlineId: string | undefined | null = null
 
 function settingsFilePath(): string {
   return path.join(app.getPath('userData'), 'settings.json')
@@ -64,9 +68,58 @@ export async function getSteamApiKey(): Promise<string | undefined> {
   return cachedSteamApiKey
 }
 
-export async function getSettingsState(): Promise<{ steamApiKeySet: boolean }> {
-  const key = await getSteamApiKey()
-  return { steamApiKeySet: Boolean(key) }
+export async function getPsnNpsso(): Promise<string | undefined> {
+  const fromEnv = process.env.PSN_NPSSO?.trim()
+  if (fromEnv) return fromEnv
+
+  if (cachedPsnNpsso !== null) {
+    return cachedPsnNpsso || undefined
+  }
+
+  const stored = await readStoredSettings()
+  if (!stored.psnNpssoEnc) {
+    cachedPsnNpsso = undefined
+    return undefined
+  }
+
+  try {
+    cachedPsnNpsso = decryptSecret(stored.psnNpssoEnc).trim() || undefined
+  } catch {
+    cachedPsnNpsso = undefined
+  }
+
+  return cachedPsnNpsso
+}
+
+export async function getPsnOnlineId(): Promise<string | undefined> {
+  const fromEnv = process.env.PSN_ONLINE_ID?.trim()
+  if (fromEnv) return fromEnv
+
+  if (cachedPsnOnlineId !== null) {
+    return cachedPsnOnlineId || undefined
+  }
+
+  const stored = await readStoredSettings()
+  cachedPsnOnlineId = stored.psnOnlineId?.trim() || undefined
+  return cachedPsnOnlineId
+}
+
+export async function getSettingsState(): Promise<{
+  steamApiKeySet: boolean
+  psnNpssoSet: boolean
+  psnOnlineId?: string
+}> {
+  const [key, npsso, onlineId] = await Promise.all([
+    getSteamApiKey(),
+    getPsnNpsso(),
+    getPsnOnlineId(),
+  ])
+
+  return {
+    steamApiKeySet: Boolean(key),
+    psnNpssoSet: Boolean(npsso),
+    psnOnlineId: onlineId,
+  }
 }
 
 export async function updateSteamApiKey(value: string | undefined): Promise<void> {
@@ -79,6 +132,36 @@ export async function updateSteamApiKey(value: string | undefined): Promise<void
   } else {
     stored.steamApiKeyEnc = encryptSecret(trimmed)
     cachedSteamApiKey = trimmed
+  }
+
+  await writeStoredSettings(stored)
+}
+
+export async function updatePsnNpsso(value: string | undefined): Promise<void> {
+  const trimmed = value?.trim() ?? ''
+  const stored = await readStoredSettings()
+
+  if (!trimmed) {
+    delete stored.psnNpssoEnc
+    cachedPsnNpsso = undefined
+  } else {
+    stored.psnNpssoEnc = encryptSecret(trimmed)
+    cachedPsnNpsso = trimmed
+  }
+
+  await writeStoredSettings(stored)
+}
+
+export async function updatePsnOnlineId(value: string | undefined): Promise<void> {
+  const trimmed = value?.trim() ?? ''
+  const stored = await readStoredSettings()
+
+  if (!trimmed) {
+    delete stored.psnOnlineId
+    cachedPsnOnlineId = undefined
+  } else {
+    stored.psnOnlineId = trimmed
+    cachedPsnOnlineId = trimmed
   }
 
   await writeStoredSettings(stored)

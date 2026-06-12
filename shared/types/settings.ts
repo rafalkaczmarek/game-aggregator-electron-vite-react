@@ -1,9 +1,13 @@
 export interface SettingsState {
   steamApiKeySet: boolean
+  psnNpssoSet: boolean
+  psnOnlineId?: string
 }
 
 export interface SettingsUpdate {
   steamApiKey?: string
+  psnNpsso?: string
+  psnOnlineId?: string
 }
 
 export interface SettingsApi {

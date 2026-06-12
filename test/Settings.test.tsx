@@ -11,17 +11,17 @@ describe('Settings', () => {
   beforeEach(() => {
     get.mockReset()
     update.mockReset()
-    get.mockResolvedValue({ steamApiKeySet: false })
+    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
     window.settingsApi = { get, update }
   })
 
   it('loads current settings state on mount', async () => {
-    get.mockResolvedValue({ steamApiKeySet: true })
+    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
 
     render(<Settings />)
 
     await waitFor(() => {
-      expect(screen.getByText('API key configured')).toBeInTheDocument()
+      expect(screen.getByText('Steam API key configured')).toBeInTheDocument()
     })
     expect(get).toHaveBeenCalledTimes(1)
   })
@@ -37,12 +37,12 @@ describe('Settings', () => {
     await user.click(screen.getByRole('button', { name: 'Save settings' }))
 
     expect(update).not.toHaveBeenCalled()
-    expect(screen.getByText('No API key provided.')).toBeInTheDocument()
+    expect(screen.getByText('No changes to save.')).toBeInTheDocument()
   })
 
   it('saves trimmed api key', async () => {
     const user = userEvent.setup()
-    update.mockResolvedValue({ steamApiKeySet: true })
+    update.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
 
     render(<Settings />)
     await waitFor(() => {
@@ -53,7 +53,7 @@ describe('Settings', () => {
     await user.click(screen.getByRole('button', { name: 'Save settings' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Steam API key saved.')).toBeInTheDocument()
+      expect(screen.getByText('Settings saved.')).toBeInTheDocument()
     })
     expect(update).toHaveBeenCalledWith({ steamApiKey: 'my-key' })
   })
@@ -77,8 +77,8 @@ describe('Settings', () => {
 
   it('clears configured api key', async () => {
     const user = userEvent.setup()
-    get.mockResolvedValue({ steamApiKeySet: true })
-    update.mockResolvedValue({ steamApiKeySet: false })
+    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
+    update.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
 
     render(<Settings />)
     await waitFor(() => {
@@ -95,7 +95,7 @@ describe('Settings', () => {
 
   it('shows clear error message when update fails', async () => {
     const user = userEvent.setup()
-    get.mockResolvedValue({ steamApiKeySet: true })
+    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
     update.mockRejectedValue(new Error('clear failed'))
 
     render(<Settings />)
