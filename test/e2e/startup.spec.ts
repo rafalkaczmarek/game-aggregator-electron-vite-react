@@ -1,0 +1,33 @@
+/// <reference path="./global.d.ts" />
+
+import { expect, test } from './fixtures'
+
+test.describe('startup', () => {
+  test('shows correct window title', async ({ page }) => {
+    const title = await page.title()
+    expect(title).toBe('Electron + Vite + React')
+  })
+
+  test('shows game aggregator home page', async ({ page }) => {
+    const h1 = await page.$('h1')
+    const title = await h1?.textContent()
+    expect(title).toBe('Wszystkie gry w jednym miejscu.')
+  })
+
+  test('scan libraries shows platform results', async ({ page }) => {
+    test.setTimeout(60_000)
+
+    await page.click('button:has-text("Scan libraries")')
+    await page.waitForSelector('text=Last scan:')
+
+    const platformRows = await page.locator('[data-testid="platform-summary"] li').all()
+    expect(platformRows).toHaveLength(4)
+
+    for (const platform of ['steam', 'gog', 'epic', 'psn']) {
+      await expect(page.locator('[data-testid="platform-summary"] li', { hasText: platform })).toBeVisible()
+    }
+
+    const steamRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'steam' })
+    await expect(steamRow).not.toContainText('not implemented')
+  })
+})
