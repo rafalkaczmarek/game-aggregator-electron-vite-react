@@ -1,8 +1,6 @@
 import GameLibrary from '@/components/GameLibrary'
 import Settings from '@/components/Settings'
 import UpdateElectron from '@/components/update'
-import logoVite from './assets/logo-vite.svg'
-import logoElectron from './assets/logo-electron.svg'
 import logoTailwind from './assets/logo-tailwindcss.svg'
 
 function App() {
@@ -32,25 +30,6 @@ function App() {
                   </p>
                 </div>
               </div>
-
-              <a
-                href='https://github.com/electron-vite/electron-vite-react'
-                target='_blank'
-                rel='noreferrer'
-                className='group inline-flex w-fit items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-cyan-300 hover:shadow-md'
-              >
-                <span className='relative flex h-10 w-10 items-center justify-center'>
-                  <img src={logoVite} className='h-8 w-8' alt='Vite logo' />
-                  <img
-                    src={logoElectron}
-                    className='absolute h-8 w-8 motion-safe:animate-spin [animation-duration:20s]'
-                    alt='Electron logo'
-                  />
-                </span>
-                <span className='pr-2 text-sm font-semibold text-slate-700 transition-colors group-hover:text-cyan-700'>
-                  Open project repository
-                </span>
-              </a>
             </div>
           </div>
         </section>
