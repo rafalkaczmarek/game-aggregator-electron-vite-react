@@ -1,7 +1,5 @@
 import GameLibrary from '@src/components/GameLibrary'
 import Settings from '@src/components/Settings'
-import UpdateElectron from '@src/components/update'
-import logoTailwind from './assets/logo-tailwindcss.svg'
 
 function App() {
   return (
@@ -37,34 +35,6 @@ function App() {
         <Settings />
 
         <GameLibrary />
-
-        <section className='grid gap-4 md:grid-cols-3'>
-          <div className='rounded-3xl border border-slate-200 bg-white p-6 text-slate-800 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
-            <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Public assets</div>
-            <p className='mt-3 text-base leading-7'>
-              Place static files into the <code>/public</code> folder.
-            </p>
-          </div>
-
-          <div className='rounded-3xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-sky-50 p-6 text-slate-800 shadow-[0_18px_36px_-28px_rgba(14,116,144,0.4)]'>
-            <div className='flex items-center gap-2 text-sm uppercase tracking-[0.3em] text-cyan-700'>
-              <img src={logoTailwind} className='h-5 w-5' alt='Tailwind CSS logo' />
-              Tailwind system
-            </div>
-            <p className='mt-3 text-base leading-7 text-slate-700'>
-              Unified utility classes now drive layout, hierarchy, and component consistency across the app.
-            </p>
-          </div>
-
-          <div className='rounded-3xl border border-slate-200 bg-white p-6 text-slate-800 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
-            <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Update panel</div>
-            <p className='mt-3 text-base leading-7'>
-              Built-in updater UI follows the same spacing and typography rules for a more harmonious experience.
-            </p>
-          </div>
-        </section>
-
-        <UpdateElectron />
       </div>
     </div>
   )
