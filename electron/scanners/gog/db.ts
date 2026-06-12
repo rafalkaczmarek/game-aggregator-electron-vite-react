@@ -1,5 +1,5 @@
-import { DatabaseSync } from 'node:sqlite'
 import type { Game, GamePlatform } from '../../../shared/types/game'
+import { DatabaseSync } from 'node:sqlite'
 
 const RELEASE_KEY_PREFIX_TO_PLATFORM: Record<string, GamePlatform> = {
   gog_: 'gog',

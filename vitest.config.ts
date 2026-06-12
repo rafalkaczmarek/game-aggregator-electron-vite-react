@@ -1,9 +1,20 @@
 import path from 'node:path'
+import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
+function externalNodeSqlite(): Plugin {
+  return {
+    name: 'external-node-sqlite',
+    enforce: 'pre',
+    resolveId(id) {
+      if (id === 'node:sqlite') return { id, external: true }
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [externalNodeSqlite(), react()],
   resolve: {
     alias: {
       '@src': path.join(__dirname, 'src'),
