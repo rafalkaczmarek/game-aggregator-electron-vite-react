@@ -17,3 +17,13 @@ export default function PlatformBadge({ platform }: { platform: GamePlatform }) 
     </span>
   )
 }
+
+export function PlatformBadges({ platforms }: { platforms: GamePlatform[] }) {
+  return (
+    <div className='flex flex-wrap justify-end gap-1'>
+      {platforms.map((platform) => (
+        <PlatformBadge key={platform} platform={platform} />
+      ))}
+    </div>
+  )
+}

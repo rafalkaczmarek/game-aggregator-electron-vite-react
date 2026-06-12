@@ -42,3 +42,34 @@ export function createMockLibrary(games: Game[] = sampleGames): AggregatedLibrar
     ],
   }
 }
+
+/** Same game on GOG + Epic with slightly different titles (colon / apostrophe). */
+export const duplicateTitleGames: Game[] = [
+  {
+    id: 'gog-plague',
+    platform: 'gog',
+    title: 'A Plague Tale Innocence',
+    installed: false,
+    playtimeMinutes: 120,
+  },
+  {
+    id: 'epic-plague',
+    platform: 'epic',
+    title: 'A Plague Tale: Innocence',
+    installed: true,
+    playtimeMinutes: 30,
+    coverUrl: 'https://example.com/plague.jpg',
+  },
+  {
+    id: 'steam-dota',
+    platform: 'steam',
+    title: 'Dota 2',
+    installed: true,
+    playtimeMinutes: 125,
+    sourceId: '570',
+  },
+]
+
+export function createDuplicateTitleLibrary(): AggregatedLibrary {
+  return createMockLibrary(duplicateTitleGames)
+}

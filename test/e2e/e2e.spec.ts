@@ -12,7 +12,7 @@ import {
 } from '@playwright/test'
 import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
-import { createMockLibrary } from '../fixtures/games'
+import { createMockLibrary, createDuplicateTitleLibrary } from '../fixtures/games'
 import {
   collectRendererCoverage,
   e2eCoverageEnabled,
@@ -239,6 +239,78 @@ test.describe('[game-aggregator] e2e tests', () => {
       await expect(page.getByText(/No games found/i)).toBeVisible()
       await expect(page.getByRole('button', { name: 'List view' })).toHaveCount(0)
       await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
+    })
+  })
+
+  test.describe('duplicate title grouping', () => {
+    test.beforeEach(async () => {
+      await page.reload()
+      await page.waitForSelector('button:has-text("Scan libraries")')
+      await setScanAllMock(null)
+    })
+
+    test.afterEach(async () => {
+      await setScanAllMock(null)
+    })
+
+    test('merges same game across platforms into one grid tile', async () => {
+      await setScanAllMock(createDuplicateTitleLibrary())
+
+      await page.click('button:has-text("Scan libraries")')
+      await expect(page.getByText('Your games')).toBeVisible()
+
+      const grid = page.getByTestId('game-library-grid')
+      await expect(grid.locator('li')).toHaveCount(2)
+      await expect(page.getByText('A Plague Tale: Innocence')).toBeVisible()
+      await expect(grid.getByText('GOG')).toBeVisible()
+      await expect(grid.getByText('Epic')).toBeVisible()
+      await expect(page.getByText('2.5 hrs')).toBeVisible()
+      await expect(page.getByText('— 2 games')).toBeVisible()
+      await expect(page.getByText('(3 across platforms)')).toBeVisible()
+    })
+
+    test('shows multiple platform badges in list view for merged titles', async () => {
+      await setScanAllMock(createDuplicateTitleLibrary())
+
+      await page.click('button:has-text("Scan libraries")')
+      await page.getByRole('button', { name: 'List view' }).click()
+
+      const list = page.getByTestId('game-library-list')
+      await expect(list.locator('li')).toHaveCount(2)
+
+      const plagueRow = list.locator('li', { hasText: 'A Plague Tale: Innocence' })
+      await expect(plagueRow.getByText('GOG')).toBeVisible()
+      await expect(plagueRow.getByText('Epic')).toBeVisible()
+      await expect(plagueRow.getByText('Installed')).toBeVisible()
+    })
+
+    test('merges titles with trademark symbols and different apostrophes', async () => {
+      const library = createMockLibrary([
+        {
+          id: 'steam-cod',
+          platform: 'steam',
+          title: 'Call of Duty®: Modern Warfare',
+          installed: false,
+          playtimeMinutes: 90,
+        },
+        {
+          id: 'gog-cod',
+          platform: 'gog',
+          title: 'Call of Duty Modern Warfare\u2122',
+          installed: true,
+          playtimeMinutes: 30,
+        },
+      ])
+
+      await setScanAllMock(library)
+      await page.click('button:has-text("Scan libraries")')
+
+      const grid = page.getByTestId('game-library-grid')
+      await expect(grid.locator('li')).toHaveCount(1)
+      await expect(page.getByText('Call of Duty: Modern Warfare')).toBeVisible()
+      await expect(grid.getByText('Steam')).toBeVisible()
+      await expect(grid.getByText('GOG')).toBeVisible()
+      await expect(page.getByText('2.0 hrs')).toBeVisible()
     })
   })
 

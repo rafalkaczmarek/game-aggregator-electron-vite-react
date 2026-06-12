@@ -4,7 +4,7 @@ import { GAME_PLATFORMS } from '@shared/types/game'
 import GameGridView from './game-library/GameGridView'
 import GameListView from './game-library/GameListView'
 import ViewToggle, { type LibraryViewMode } from './game-library/ViewToggle'
-import { sortGamesByTitle } from './game-library/format'
+import { groupGamesByTitle, sortGroupedGamesByTitle } from './game-library/format'
 
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
@@ -27,7 +27,7 @@ export default function GameLibrary() {
     }
   }
 
-  const sortedGames = library ? sortGamesByTitle(library.games) : []
+  const groupedGames = library ? sortGroupedGamesByTitle(groupGamesByTitle(library.games)) : []
 
   return (
     <section className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
@@ -52,7 +52,10 @@ export default function GameLibrary() {
       {library && (
         <div className='mt-6 space-y-4'>
           <p className='text-sm text-slate-500'>
-            Last scan: {new Date(library.scannedAt).toLocaleString()} — {library.games.length} games
+            Last scan: {new Date(library.scannedAt).toLocaleString()} — {groupedGames.length} games
+            {groupedGames.length !== library.games.length && (
+              <span className='text-slate-400'> ({library.games.length} across platforms)</span>
+            )}
           </p>
           <ul data-testid='platform-summary' className='space-y-2'>
             {library.results.map((result) => (
@@ -70,16 +73,16 @@ export default function GameLibrary() {
             ))}
           </ul>
 
-          {sortedGames.length > 0 ? (
+          {groupedGames.length > 0 ? (
             <div className='space-y-4'>
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <h3 className='text-base font-semibold text-slate-900'>Your games</h3>
                 <ViewToggle value={viewMode} onChange={setViewMode} />
               </div>
               {viewMode === 'grid' ? (
-                <GameGridView games={sortedGames} />
+                <GameGridView games={groupedGames} />
               ) : (
-                <GameListView games={sortedGames} />
+                <GameListView games={groupedGames} />
               )}
             </div>
           ) : (

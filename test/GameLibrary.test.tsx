@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
 import GameLibrary from '@src/components/GameLibrary'
-import { createMockLibrary } from './fixtures/games'
+import { createMockLibrary, createDuplicateTitleLibrary } from './fixtures/games'
 
 describe('GameLibrary', () => {
   const scanAll = vi.fn<GameApi['scanAll']>()
@@ -88,5 +88,38 @@ describe('GameLibrary', () => {
 
     expect(screen.queryByRole('button', { name: 'List view' })).not.toBeInTheDocument()
     expect(screen.getByTestId('platform-summary')).toBeInTheDocument()
+  })
+
+  it('merges duplicate titles into one tile with multiple platform badges', async () => {
+    scanAll.mockResolvedValue(createDuplicateTitleLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Your games')).toBeInTheDocument()
+    })
+
+    const grid = screen.getByTestId('game-library-grid')
+    expect(within(grid).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(grid).getByText('A Plague Tale: Innocence')).toBeInTheDocument()
+    expect(within(grid).getByText('GOG')).toBeInTheDocument()
+    expect(within(grid).getByText('Epic')).toBeInTheDocument()
+    expect(within(grid).getByText('2.5 hrs')).toBeInTheDocument()
+  })
+
+  it('shows deduplicated game count with platform total when titles overlap', async () => {
+    scanAll.mockResolvedValue(createDuplicateTitleLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/— 2 games/i)).toBeInTheDocument()
+    })
+
+    expect(screen.getByText(/\(3 across platforms\)/i)).toBeInTheDocument()
   })
 })
