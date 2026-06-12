@@ -5,6 +5,7 @@ import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/ty
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
 
 const gameApi = {
+  getLibrary: (): Promise<AggregatedLibrary | null> => ipcRenderer.invoke('games:get-library'),
   scanAll: (): Promise<AggregatedLibrary> => scanAllImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
@@ -23,6 +24,12 @@ contextBridge.exposeInMainWorld('__e2e', {
     scanAllImpl = result
       ? () => Promise.resolve(result)
       : () => ipcRenderer.invoke('games:scan-all')
+  },
+  writeLibraryCache(library: AggregatedLibrary) {
+    return ipcRenderer.invoke('e2e:write-library-cache', library)
+  },
+  clearLibraryCache() {
+    return ipcRenderer.invoke('e2e:clear-library-cache')
   },
 })
 

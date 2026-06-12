@@ -27,6 +27,7 @@ export interface AggregatedLibrary {
 }
 
 export interface GameApi {
+  getLibrary: () => Promise<AggregatedLibrary | null>
   scanAll: () => Promise<AggregatedLibrary>
   scanPlatform: (platform: GamePlatform) => Promise<ScanResult>
 }

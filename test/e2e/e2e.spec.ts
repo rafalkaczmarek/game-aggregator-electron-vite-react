@@ -114,6 +114,14 @@ test.describe('[game-aggregator] e2e tests', () => {
     }, library)
   }
 
+  async function writeLibraryCache(library: AggregatedLibrary) {
+    await page.evaluate((data) => window.__e2e.writeLibraryCache(data), library)
+  }
+
+  async function clearLibraryCache() {
+    await page.evaluate(() => window.__e2e.clearLibraryCache())
+  }
+
   test.describe('game library views', () => {
     const mockLibrary = createMockLibrary()
 
@@ -160,6 +168,75 @@ test.describe('[game-aggregator] e2e tests', () => {
       await page.click('button:has-text("Scan libraries")')
       await expect(page.getByText(/No games found/i)).toBeVisible()
       await expect(page.getByRole('button', { name: 'List view' })).toHaveCount(0)
+      await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
+    })
+  })
+
+  test.describe('library cache', () => {
+    test.beforeEach(async () => {
+      await clearLibraryCache()
+      await setScanAllMock(null)
+      await page.reload()
+      await page.waitForSelector('button:has-text("Scan libraries")')
+    })
+
+    test.afterEach(async () => {
+      await clearLibraryCache()
+      await setScanAllMock(null)
+    })
+
+    test('shows no library until first scan when cache is missing', async () => {
+      await expect(page.getByText('Last scan:')).toHaveCount(0)
+      await expect(page.getByText('Your games')).toHaveCount(0)
+    })
+
+    test('loads cached library on startup without scanning', async () => {
+      const mockLibrary = createMockLibrary()
+      await writeLibraryCache(mockLibrary)
+
+      await page.reload()
+      await page.waitForSelector('button:has-text("Scan libraries")')
+
+      await expect(page.getByText('Your games')).toBeVisible()
+      await expect(page.getByTestId('game-library-grid')).toBeVisible()
+      await expect(page.getByText('Alan Wake')).toBeVisible()
+      await expect(page.getByText('Cyberpunk 2077')).toBeVisible()
+      await expect(page.getByText('Dota 2')).toBeVisible()
+      await expect(page.getByText('— 3 games')).toBeVisible()
+      await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
+    })
+
+    test('getLibrary returns cached library via IPC', async () => {
+      const mockLibrary = createMockLibrary()
+      await writeLibraryCache(mockLibrary)
+
+      const cached = await page.evaluate(() => window.gameApi.getLibrary())
+
+      expect(cached).not.toBeNull()
+      expect(cached?.scannedAt).toBe(mockLibrary.scannedAt)
+      expect(cached?.games).toHaveLength(3)
+      expect(cached?.results).toHaveLength(4)
+    })
+
+    test('persists library after scan and restores it on reload', async () => {
+      test.setTimeout(60000)
+
+      await page.click('button:has-text("Scan libraries")')
+      await page.waitForSelector('text=Last scan:')
+
+      const cached = await page.evaluate(() => window.gameApi.getLibrary())
+      expect(cached).not.toBeNull()
+      expect(Array.isArray(cached?.games)).toBe(true)
+      expect(typeof cached?.scannedAt).toBe('string')
+      expect(cached?.results).toHaveLength(4)
+
+      await page.reload()
+      await page.waitForSelector('text=Last scan:')
+
+      const restored = await page.evaluate(() => window.gameApi.getLibrary())
+      expect(restored).not.toBeNull()
+      expect(restored?.scannedAt).toBe(cached?.scannedAt)
+      expect(restored?.games.length).toBe(cached?.games.length)
       await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
     })
   })

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Desktop game library aggregator (Steam, GOG, Epic, PSN) — Electron + Vite + React.",
   "license": "MIT",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "author": "Rafał Kaczmarek",
   "type": "module",
   "main": "dist-electron/main/index.js",
   "scripts": {

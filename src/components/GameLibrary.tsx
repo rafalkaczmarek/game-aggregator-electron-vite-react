@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { AggregatedLibrary } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import GameGridView from './game-library/GameGridView'
@@ -10,6 +10,12 @@ export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState<LibraryViewMode>('grid')
+
+  useEffect(() => {
+    void window.gameApi.getLibrary().then((cached) => {
+      if (cached) setLibrary(cached)
+    })
+  }, [])
 
   async function handleScan() {
     setLoading(true)

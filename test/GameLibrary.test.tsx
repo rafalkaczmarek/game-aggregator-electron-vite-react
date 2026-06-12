@@ -7,13 +7,30 @@ import { createMockLibrary } from './fixtures/games'
 
 describe('GameLibrary', () => {
   const scanAll = vi.fn<GameApi['scanAll']>()
+  const getLibrary = vi.fn<GameApi['getLibrary']>()
 
   beforeEach(() => {
     scanAll.mockReset()
+    getLibrary.mockReset()
+    getLibrary.mockResolvedValue(null)
     window.gameApi = {
+      getLibrary,
       scanAll,
       scanPlatform: vi.fn(),
     }
+  })
+
+  it('loads cached library on mount', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+
+    render(<GameLibrary />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Your games')).toBeInTheDocument()
+    })
+
+    expect(getLibrary).toHaveBeenCalledTimes(1)
+    expect(scanAll).not.toHaveBeenCalled()
   })
 
   it('shows sorted games in grid view after scan', async () => {
