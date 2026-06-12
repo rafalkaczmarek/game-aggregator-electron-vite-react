@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 import { registerGameIpcHandlers } from './ipc/games'
+import { registerSettingsIpcHandlers } from './ipc/settings'
 import { update } from './update'
 
 const require = createRequire(import.meta.url)
@@ -35,7 +36,7 @@ if (process.platform === 'win32' && os.release().startsWith('6.1')) app.disableH
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
-if (!app.requestSingleInstanceLock()) {
+if (process.env.E2E_TEST !== '1' && !app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
 }
@@ -83,6 +84,7 @@ async function createWindow() {
 }
 
 registerGameIpcHandlers()
+registerSettingsIpcHandlers()
 
 app.whenReady().then(createWindow)
 

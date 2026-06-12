@@ -33,3 +33,4 @@ yarn.lock
 /playwright/.cache/
 
 test/screenshots
+test/e2e-user-data

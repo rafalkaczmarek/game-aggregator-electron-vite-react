@@ -22,8 +22,8 @@ export default function GameLibrary() {
         <div>
           <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Game library</div>
           <p className='mt-2 text-sm text-slate-600'>
-            Platforms: {GAME_PLATFORMS.join(', ')}. Scanners are stubs — see{' '}
-            <code className='text-xs'>docs/ARCHITECTURE.md</code>.
+            Platforms: {GAME_PLATFORMS.join(', ')}. Steam scanner reads local files; add an API key
+            in Settings for full library metadata.
           </p>
         </div>
         <button

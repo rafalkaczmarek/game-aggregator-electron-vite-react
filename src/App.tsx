@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import GameLibrary from '@/components/GameLibrary'
+import Settings from '@/components/Settings'
 import UpdateElectron from '@/components/update'
 import logoVite from './assets/logo-vite.svg'
 import logoElectron from './assets/logo-electron.svg'
@@ -75,6 +76,8 @@ function App() {
             </div>
           </div>
         </section>
+
+        <Settings />
 
         <GameLibrary />
 
