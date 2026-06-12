@@ -34,7 +34,7 @@ describe('Settings', () => {
       expect(screen.getByLabelText('Steam Web API key')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Save settings' }))
+    await user.click(screen.getByRole('button', { name: 'Save API key' }))
 
     expect(update).not.toHaveBeenCalled()
     expect(screen.getByText('No changes to save.')).toBeInTheDocument()
@@ -50,7 +50,7 @@ describe('Settings', () => {
     })
 
     await user.type(screen.getByLabelText('Steam Web API key'), '  my-key  ')
-    await user.click(screen.getByRole('button', { name: 'Save settings' }))
+    await user.click(screen.getByRole('button', { name: 'Save API key' }))
 
     await waitFor(() => {
       expect(screen.getByText('Settings saved.')).toBeInTheDocument()
@@ -68,7 +68,7 @@ describe('Settings', () => {
     })
 
     await user.type(screen.getByLabelText('Steam Web API key'), 'bad-key')
-    await user.click(screen.getByRole('button', { name: 'Save settings' }))
+    await user.click(screen.getByRole('button', { name: 'Save API key' }))
 
     await waitFor(() => {
       expect(screen.getByText('save failed')).toBeInTheDocument()

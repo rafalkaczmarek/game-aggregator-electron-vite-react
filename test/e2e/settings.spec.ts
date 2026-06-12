@@ -15,7 +15,8 @@ test.describe('settings', () => {
     await expect(page.getByLabel('Steam Web API key')).toBeVisible()
     await expect(page.locator('#psn-npsso')).toBeVisible()
     await expect(page.getByLabel('PSN NPSSO token')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Save settings' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save API key' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save account settings' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'steamcommunity.com/dev/apikey' })).toBeVisible()
   })
 
@@ -25,16 +26,16 @@ test.describe('settings', () => {
     )
     await page.reload()
     await page.waitForSelector('#steam-api-key')
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save API key' }).click()
     await expect(page.getByText('No changes to save.')).toBeVisible()
   })
 
   test('keeps existing key when saving empty form', async ({ page }) => {
     await page.fill('#steam-api-key', 'e2e-existing-key')
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save API key' }).click()
     await expect(page.getByText('Settings saved.')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save API key' }).click()
     await expect(page.getByText('No changes to save.')).toBeVisible()
 
     const configured = await page.evaluate(() => window.settingsApi.get())
@@ -43,7 +44,7 @@ test.describe('settings', () => {
 
   test('saves and clears steam api key through UI', async ({ page }) => {
     await page.fill('#steam-api-key', 'e2e-test-steam-api-key')
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save API key' }).click()
 
     await expect(page.getByText('Settings saved.')).toBeVisible()
     await expect(page.getByText('Steam API key configured')).toBeVisible()
@@ -62,7 +63,7 @@ test.describe('settings', () => {
 
   test('saves and clears psn npsso through UI', async ({ page }) => {
     await page.fill('#psn-npsso', 'e2e-test-psn-npsso')
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save account settings' }).click()
 
     await expect(page.getByText('Settings saved.')).toBeVisible()
     await expect(page.getByText('PSN NPSSO configured')).toBeVisible()
@@ -81,7 +82,7 @@ test.describe('settings', () => {
 
   test('persists psn online id through settings API', async ({ page }) => {
     await page.fill('#psn-online-id', 'public-player')
-    await page.getByRole('button', { name: 'Save settings' }).click()
+    await page.getByRole('button', { name: 'Save account settings' }).click()
 
     await expect(page.getByText('Settings saved.')).toBeVisible()
 
