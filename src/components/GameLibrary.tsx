@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
-import type { AggregatedLibrary } from '@shared/types/game'
+import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import GameGridView from './game-library/GameGridView'
 import GameListView from './game-library/GameListView'
+import PlatformFilter from './game-library/PlatformFilter'
 import ViewToggle, { type LibraryViewMode } from './game-library/ViewToggle'
-import { groupGamesByTitle, sortGroupedGamesByTitle } from './game-library/format'
+import {
+  filterGamesByPlatforms,
+  groupGamesByTitle,
+  sortGroupedGamesByTitle,
+} from './game-library/format'
 
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState<LibraryViewMode>('grid')
+  const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
 
   useEffect(() => {
     void window.gameApi.getLibrary().then((cached) => {
@@ -27,7 +33,11 @@ export default function GameLibrary() {
     }
   }
 
-  const groupedGames = library ? sortGroupedGamesByTitle(groupGamesByTitle(library.games)) : []
+  const filteredGames = library
+    ? filterGamesByPlatforms(library.games, selectedPlatforms)
+    : []
+  const groupedGames = sortGroupedGamesByTitle(groupGamesByTitle(filteredGames))
+  const isFiltered = selectedPlatforms.length > 0
 
   return (
     <section className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
@@ -53,7 +63,8 @@ export default function GameLibrary() {
         <div className='mt-6 space-y-4'>
           <p className='text-sm text-slate-500'>
             Last scan: {new Date(library.scannedAt).toLocaleString()} — {groupedGames.length} games
-            {groupedGames.length !== library.games.length && (
+            {isFiltered && <span className='text-slate-400'> (filtered)</span>}
+            {!isFiltered && groupedGames.length !== library.games.length && (
               <span className='text-slate-400'> ({library.games.length} across platforms)</span>
             )}
           </p>
@@ -73,16 +84,25 @@ export default function GameLibrary() {
             ))}
           </ul>
 
-          {groupedGames.length > 0 ? (
+          {library.games.length > 0 ? (
             <div className='space-y-4'>
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <h3 className='text-base font-semibold text-slate-900'>Your games</h3>
-                <ViewToggle value={viewMode} onChange={setViewMode} />
+                <div className='flex flex-wrap items-center gap-3'>
+                  <PlatformFilter value={selectedPlatforms} onChange={setSelectedPlatforms} />
+                  <ViewToggle value={viewMode} onChange={setViewMode} />
+                </div>
               </div>
-              {viewMode === 'grid' ? (
-                <GameGridView games={groupedGames} />
+              {groupedGames.length > 0 ? (
+                viewMode === 'grid' ? (
+                  <GameGridView games={groupedGames} />
+                ) : (
+                  <GameListView games={groupedGames} />
+                )
               ) : (
-                <GameListView games={groupedGames} />
+                <p className='rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500'>
+                  No games match the selected platforms. Clear the filter or pick other platforms.
+                </p>
               )}
             </div>
           ) : (

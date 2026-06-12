@@ -122,4 +122,55 @@ describe('GameLibrary', () => {
 
     expect(screen.getByText(/\(3 across platforms\)/i)).toBeInTheDocument()
   })
+
+  it('filters games by selected platforms', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Steam' }))
+
+    const grid = screen.getByTestId('game-library-grid')
+    expect(within(grid).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
+    expect(screen.getByText(/\(filtered\)/i)).toBeInTheDocument()
+  })
+
+  it('shows all games when no platforms are selected', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    expect(within(screen.getByTestId('game-library-grid')).getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.queryByText(/\(filtered\)/i)).not.toBeInTheDocument()
+  })
+
+  it('shows empty filter state when selected platform has no games', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('platform-filter')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'PSN' }))
+
+    expect(screen.getByText(/No games match the selected platforms/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('game-library-grid')).not.toBeInTheDocument()
+  })
 })

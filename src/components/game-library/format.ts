@@ -107,3 +107,12 @@ export function sortGroupedGamesByTitle(groups: GroupedGame[]): GroupedGame[] {
     a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }),
   )
 }
+
+export function filterGamesByPlatforms(
+  games: Game[],
+  platforms: readonly GamePlatform[],
+): Game[] {
+  if (platforms.length === 0) return games
+  const allowed = new Set(platforms)
+  return games.filter((game) => allowed.has(game.platform))
+}
