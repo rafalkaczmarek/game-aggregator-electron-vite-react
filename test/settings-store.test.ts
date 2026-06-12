@@ -1,0 +1,106 @@
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const tmpDir = path.join(import.meta.dirname, '.tmp-settings-store')
+
+const safeStorage = {
+  isEncryptionAvailable: vi.fn(() => false),
+  encryptString: vi.fn((value: string) => Buffer.from(value, 'utf8')),
+  decryptString: vi.fn((buffer: Buffer) => buffer.toString('utf8')),
+}
+
+vi.mock('electron', () => ({
+  app: {
+    getPath: () => tmpDir,
+  },
+  safeStorage,
+}))
+
+async function loadStore() {
+  return import('../electron/main/settings/store')
+}
+
+describe('settings store', () => {
+  beforeEach(async () => {
+    vi.unstubAllEnvs()
+    safeStorage.isEncryptionAvailable.mockReturnValue(false)
+    safeStorage.decryptString.mockImplementation((buffer: Buffer) => buffer.toString('utf8'))
+    await mkdir(tmpDir, { recursive: true })
+    vi.resetModules()
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('returns steam api key from environment when set', async () => {
+    vi.stubEnv('STEAM_API_KEY', ' env-key ')
+    const { getSteamApiKey, getSettingsState } = await loadStore()
+
+    await expect(getSteamApiKey()).resolves.toBe('env-key')
+    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: true })
+  })
+
+  it('persists and reads steam api key from user data', async () => {
+    const { updateSteamApiKey, getSteamApiKey, getSettingsState } = await loadStore()
+
+    await updateSteamApiKey('  stored-key  ')
+    await expect(getSteamApiKey()).resolves.toBe('stored-key')
+    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: true })
+
+    const raw = await readFile(path.join(tmpDir, 'settings.json'), 'utf8')
+    expect(JSON.parse(raw)).toHaveProperty('steamApiKeyEnc')
+  })
+
+  it('clears stored steam api key', async () => {
+    const { updateSteamApiKey, getSteamApiKey, getSettingsState } = await loadStore()
+
+    await updateSteamApiKey('to-remove')
+    await updateSteamApiKey('')
+    await expect(getSteamApiKey()).resolves.toBeUndefined()
+    await expect(getSettingsState()).resolves.toEqual({ steamApiKeySet: false })
+  })
+
+  it('uses safe storage when encryption is available', async () => {
+    safeStorage.isEncryptionAvailable.mockReturnValue(true)
+    safeStorage.encryptString.mockReturnValue(Buffer.from('cipher'))
+    safeStorage.decryptString.mockReturnValue('from-disk')
+
+    const encoded = Buffer.from('cipher').toString('base64')
+    await writeFile(
+      path.join(tmpDir, 'settings.json'),
+      `${JSON.stringify({ steamApiKeyEnc: encoded })}\n`,
+      'utf8',
+    )
+
+    const { updateSteamApiKey, getSteamApiKey } = await loadStore()
+
+    await updateSteamApiKey('secure-key')
+    expect(safeStorage.encryptString).toHaveBeenCalledWith('secure-key')
+
+    vi.resetModules()
+    safeStorage.isEncryptionAvailable.mockReturnValue(true)
+    safeStorage.decryptString.mockReturnValue('from-disk')
+    const { getSteamApiKey: readKey } = await loadStore()
+    await expect(readKey()).resolves.toBe('from-disk')
+    expect(safeStorage.decryptString).toHaveBeenCalled()
+  })
+
+  it('returns undefined when stored key cannot be decrypted', async () => {
+    safeStorage.isEncryptionAvailable.mockReturnValue(true)
+    safeStorage.decryptString.mockImplementation(() => {
+      throw new Error('decrypt failed')
+    })
+
+    const encoded = Buffer.from('broken', 'utf8').toString('base64')
+    await writeFile(
+      path.join(tmpDir, 'settings.json'),
+      `${JSON.stringify({ steamApiKeyEnc: encoded })}\n`,
+      'utf8',
+    )
+
+    const { getSteamApiKey } = await loadStore()
+    await expect(getSteamApiKey()).resolves.toBeUndefined()
+  })
+})

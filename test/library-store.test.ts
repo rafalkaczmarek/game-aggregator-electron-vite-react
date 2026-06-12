@@ -11,7 +11,7 @@ vi.mock('electron', () => ({
   },
 }))
 
-const { readCachedLibrary, writeCachedLibrary } = await import('../electron/main/library/store')
+const { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } = await import('../electron/main/library/store')
 
 describe('library store', () => {
   beforeEach(async () => {
@@ -40,5 +40,12 @@ describe('library store', () => {
 
     const raw = await readFile(path.join(tmpDir, 'library.json'), 'utf8')
     expect(JSON.parse(raw)).toEqual(library)
+  })
+
+  it('clears cached library file', async () => {
+    await writeCachedLibrary(createMockLibrary())
+    await clearCachedLibrary()
+
+    await expect(readCachedLibrary()).resolves.toBeNull()
   })
 })
