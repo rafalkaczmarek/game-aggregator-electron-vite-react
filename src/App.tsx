@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import GameLibrary from '@/components/GameLibrary'
 import Settings from '@/components/Settings'
 import UpdateElectron from '@/components/update'
@@ -7,7 +6,6 @@ import logoElectron from './assets/logo-electron.svg'
 import logoTailwind from './assets/logo-tailwindcss.svg'
 
 function App() {
-  const [count, setCount] = useState(0)
   return (
     <div className='relative min-h-screen overflow-hidden bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8'>
       <div className='pointer-events-none absolute inset-0'>
@@ -18,7 +16,7 @@ function App() {
 
       <div className='relative mx-auto flex w-full max-w-6xl flex-col gap-8'>
         <section className='overflow-hidden rounded-[2rem] border border-slate-200 bg-white/90 shadow-[0_24px_70px_-40px_rgba(14,116,144,0.35)] backdrop-blur'>
-          <div className='grid gap-8 p-6 md:grid-cols-[1.15fr_0.85fr] md:p-10'>
+          <div className='p-6 md:p-10'>
             <div className='flex flex-col justify-between gap-8'>
               <div className='space-y-6'>
                 <div className='inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.24em] text-cyan-800'>
@@ -53,26 +51,6 @@ function App() {
                   Open project repository
                 </span>
               </a>
-            </div>
-
-            <div className='relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-gradient-to-br from-cyan-50 to-white p-6'>
-              <div className='pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-cyan-200/60 blur-2xl' />
-              <div className='relative space-y-4'>
-                <div className='flex items-center justify-between'>
-                  <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Counter demo</div>
-                  <img src={logoTailwind} className='h-6 w-6 opacity-90' alt='Tailwind CSS logo' />
-                </div>
-                <div className='text-5xl font-semibold text-slate-900'>{count}</div>
-                <button
-                  onClick={() => setCount((value) => value + 1)}
-                  className='inline-flex items-center justify-center rounded-2xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-white'
-                >
-                  Increment counter
-                </button>
-                <p className='text-sm leading-6 text-slate-600'>
-                  Edit <code>src/App.tsx</code> and save to test HMR.
-                </p>
-              </div>
             </div>
           </div>
         </section>

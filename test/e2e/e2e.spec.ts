@@ -89,19 +89,6 @@ test.describe('[game-aggregator] e2e tests', () => {
     expect(title).toBe('Wszystkie gry w jednym miejscu.')
   })
 
-  test('counter demo increments on click', async () => {
-    const countButton = await page.$('button:has-text("Increment counter")')
-    const countValue = await page.$('div.text-5xl')
-
-    const valueBeforeClick = await countValue?.textContent()
-    expect(valueBeforeClick).toBe('0')
-
-    await countButton?.click()
-
-    const valueAfterClick = await countValue?.textContent()
-    expect(valueAfterClick).toBe('1')
-  })
-
   test('scan libraries shows platform results', async () => {
     test.setTimeout(60000)
 
