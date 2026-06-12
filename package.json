@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@node-steam/vdf": "^2.2.0",
+    "@tanstack/react-virtual": "^3.14.2",
     "electron-updater": "^6.8.3"
   },
   "devDependencies": {

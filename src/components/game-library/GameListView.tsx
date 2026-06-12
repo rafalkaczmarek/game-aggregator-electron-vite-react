@@ -1,46 +1,41 @@
-import GameCover from './GameCover'
-import { PlatformBadges } from './PlatformBadge'
-import {
-  formatPlaytime,
-  getGroupedGameCoverGame,
-  getGroupedGamePlaytime,
-  isGroupedGameInstalled,
-  type GroupedGame,
-} from './format'
+import { useMemo, useRef } from 'react'
+import GameListRow from './GameListRow'
+import { type GroupedGame } from './format'
+import { useScrollContainerMetrics } from './useScrollContainerMetrics'
+import { getVisibleGridRange, LIBRARY_SCROLL_HEIGHT_CLASS, LIST_ROW_HEIGHT } from './virtualScroll'
 
 export default function GameListView({ games }: { games: GroupedGame[] }) {
-  return (
-    <ul data-testid='game-library-list' className='divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200'>
-      {games.map((game) => {
-        const coverGame = getGroupedGameCoverGame(game)
-        const installed = isGroupedGameInstalled(game)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const { height, scrollTop } = useScrollContainerMetrics(scrollRef)
 
-        return (
-          <li
-            key={game.key}
-            className='group flex items-center gap-4 bg-white px-3 py-2.5 transition hover:bg-slate-50'
-          >
-            <GameCover
-              game={coverGame}
-              className='h-[42px] w-[74px] shrink-0 rounded-md shadow-sm ring-1 ring-slate-200/80'
-            />
-            <div className='min-w-0 flex-1'>
-              <p className='truncate text-sm font-medium text-slate-900 group-hover:text-cyan-800'>
-                {game.title}
-              </p>
-              <p className='mt-0.5 text-xs text-slate-500'>
-                {formatPlaytime(getGroupedGamePlaytime(game))}
-              </p>
-            </div>
-            <div className='flex shrink-0 items-center gap-3'>
-              {installed && (
-                <span className='hidden text-xs font-medium text-emerald-700 sm:inline'>Installed</span>
-              )}
-              <PlatformBadges platforms={game.platforms} />
-            </div>
-          </li>
-        )
-      })}
-    </ul>
+  const { startIndex, endIndex, totalHeight } = useMemo(
+    () => getVisibleGridRange(scrollTop, height, games.length, 1, LIST_ROW_HEIGHT),
+    [scrollTop, height, games.length],
+  )
+
+  const visibleGames = games.slice(startIndex, endIndex)
+
+  return (
+    <div
+      ref={scrollRef}
+      data-testid='game-library-list'
+      className={`${LIBRARY_SCROLL_HEIGHT_CLASS} overflow-y-auto rounded-2xl border border-slate-200`}
+    >
+      <ul className='relative divide-y divide-slate-100' style={{ height: `${totalHeight}px` }}>
+        {visibleGames.map((game, offset) => {
+          const index = startIndex + offset
+
+          return (
+            <li
+              key={game.key}
+              className='absolute left-0 top-0 w-full'
+              style={{ transform: `translateY(${index * LIST_ROW_HEIGHT}px)` }}
+            >
+              <GameListRow game={game} />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

@@ -1,49 +1,58 @@
-import GameCover from './GameCover'
-import { PlatformBadges } from './PlatformBadge'
+import { useMemo, useRef } from 'react'
+import GameGridCard from './GameGridCard'
+import { type GroupedGame } from './format'
+import { useScrollContainerMetrics } from './useScrollContainerMetrics'
 import {
-  formatPlaytime,
-  getGroupedGameCoverGame,
-  getGroupedGamePlaytime,
-  isGroupedGameInstalled,
-  type GroupedGame,
-} from './format'
+  estimateGridRowHeight,
+  getGridColumnCount,
+  getVisibleGridRange,
+  LIBRARY_SCROLL_HEIGHT_CLASS,
+} from './virtualScroll'
+
+const GRID_GAP_PX = 12
 
 export default function GameGridView({ games }: { games: GroupedGame[] }) {
-  return (
-    <ul data-testid='game-library-grid' className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-      {games.map((game) => {
-        const coverGame = getGroupedGameCoverGame(game)
-        const installed = isGroupedGameInstalled(game)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const { width, height, scrollTop } = useScrollContainerMetrics(scrollRef)
 
-        return (
-          <li key={game.key}>
-            <article className='group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md'>
-              <div className='relative aspect-[460/215] overflow-hidden bg-slate-100'>
-                <GameCover
-                  game={coverGame}
-                  className='h-full w-full transition duration-300 group-hover:scale-[1.03]'
-                />
-                {installed && (
-                  <span className='absolute left-2 top-2 rounded-md bg-emerald-600/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white'>
-                    Installed
-                  </span>
-                )}
-              </div>
-              <div className='space-y-2 p-3'>
-                <p className='line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-5 text-slate-900 group-hover:text-cyan-800'>
-                  {game.title}
-                </p>
-                <div className='flex items-start justify-between gap-2'>
-                  <PlatformBadges platforms={game.platforms} />
-                  <span className='truncate text-xs text-slate-500'>
-                    {formatPlaytime(getGroupedGamePlaytime(game))}
-                  </span>
-                </div>
-              </div>
-            </article>
-          </li>
-        )
-      })}
-    </ul>
+  const columnCount = getGridColumnCount(width || 1024)
+  const rowHeight = estimateGridRowHeight(width || 1024, columnCount)
+  const cardWidthExpr = `(100% - ${(columnCount - 1) * GRID_GAP_PX}px) / ${columnCount}`
+
+  const { startIndex, endIndex, totalHeight } = useMemo(
+    () => getVisibleGridRange(scrollTop, height, games.length, columnCount, rowHeight),
+    [scrollTop, height, games.length, columnCount, rowHeight],
+  )
+
+  const visibleGames = games.slice(startIndex, endIndex)
+
+  return (
+    <div
+      ref={scrollRef}
+      data-testid='game-library-grid'
+      className={`${LIBRARY_SCROLL_HEIGHT_CLASS} overflow-y-auto`}
+    >
+      <ul className='relative' style={{ height: `${totalHeight}px` }}>
+        {visibleGames.map((game, offset) => {
+          const index = startIndex + offset
+          const row = Math.floor(index / columnCount)
+          const column = index % columnCount
+
+          return (
+            <li
+              key={game.key}
+              className='absolute top-0'
+              style={{
+                top: row * rowHeight,
+                left: `calc(${column} * ((${cardWidthExpr}) + ${GRID_GAP_PX}px))`,
+                width: `calc(${cardWidthExpr})`,
+              }}
+            >
+              <GameGridCard game={game} />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

@@ -73,3 +73,16 @@ export const duplicateTitleGames: Game[] = [
 export function createDuplicateTitleLibrary(): AggregatedLibrary {
   return createMockLibrary(duplicateTitleGames)
 }
+
+export function createLargeMockLibrary(count: number): AggregatedLibrary {
+  const games: Game[] = Array.from({ length: count }, (_, index) => ({
+    id: `steam-${index}`,
+    platform: 'steam',
+    title: `Game ${String(index).padStart(4, '0')}`,
+    installed: index % 3 === 0,
+    playtimeMinutes: index * 10,
+    sourceId: String(index),
+  }))
+
+  return createMockLibrary(games)
+}
