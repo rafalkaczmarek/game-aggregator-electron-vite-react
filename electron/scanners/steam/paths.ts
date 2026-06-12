@@ -8,7 +8,12 @@ import { asRecord, asString, readVdfFile } from './vdf'
 const execFileAsync = promisify(execFile)
 
 function normalizeVdfPath(folderPath: string): string {
-  return folderPath.replace(/\\\\/g, '\\')
+  const unescaped = folderPath.replace(/\\\\/g, '\\')
+  if (process.platform === 'win32') {
+    return unescaped
+  }
+  // VDF fixtures and migrated libraries may use Windows-style backslashes.
+  return unescaped.replace(/\\/g, '/')
 }
 
 const WINDOWS_STEAM_CANDIDATES = [
