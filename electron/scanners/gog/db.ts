@@ -5,7 +5,6 @@ const RELEASE_KEY_PREFIX_TO_PLATFORM: Record<string, GamePlatform> = {
   gog_: 'gog',
   steam_: 'steam',
   epic_: 'epic',
-  psn_: 'psn',
 }
 
 interface GogRow {

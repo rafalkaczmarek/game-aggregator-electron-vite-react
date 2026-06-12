@@ -9,12 +9,24 @@ const scanGog = vi.fn<() => Promise<ScanResult>>()
 const scanEpic = vi.fn<() => Promise<ScanResult>>()
 const scanPsn = vi.fn<() => Promise<ScanResult>>()
 const findGalaxyDbPath = vi.fn<() => Promise<string | null>>(async () => null)
+const readGogGalaxyLibrary = vi.fn<(dbPath: string) => Partial<Record<Game['platform'], Game[]>>>()
+const gogDbMocks = vi.hoisted(() => ({
+  readGogGalaxyLibraryActual: null as ((dbPath: string) => Partial<Record<Game['platform'], Game[]>>) | null,
+}))
 
 vi.mock('../electron/scanners/steam', () => ({ scanSteam }))
 vi.mock('../electron/scanners/gog', () => ({ scanGog }))
 vi.mock('../electron/scanners/epic', () => ({ scanEpic }))
 vi.mock('../electron/scanners/psn', () => ({ scanPsn }))
 vi.mock('../electron/scanners/gog/paths', () => ({ findGalaxyDbPath }))
+vi.mock('../electron/scanners/gog/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../electron/scanners/gog/db')>()
+  gogDbMocks.readGogGalaxyLibraryActual = actual.readGogGalaxyLibrary
+  return {
+    ...actual,
+    readGogGalaxyLibrary: (dbPath: string) => readGogGalaxyLibrary(dbPath),
+  }
+})
 
 const { scanPlatform, scanAllGames } = await import('../electron/scanners')
 
@@ -34,6 +46,8 @@ describe('scanner aggregator', () => {
     scanPsn.mockReset()
     findGalaxyDbPath.mockReset()
     findGalaxyDbPath.mockResolvedValue(null)
+    readGogGalaxyLibrary.mockReset()
+    readGogGalaxyLibrary.mockImplementation((dbPath) => gogDbMocks.readGogGalaxyLibraryActual!(dbPath))
 
     scanSteam.mockResolvedValue(stubResult('steam', 'Steam Game'))
     scanGog.mockResolvedValue(stubResult('gog', 'GOG Game'))
@@ -90,5 +104,19 @@ describe('scanner aggregator', () => {
     ])
     expect(epicResult?.games[0]?.title).toBe('Epic Game')
     expect(psnResult?.games[0]?.title).toBe('PSN Game')
+  })
+
+  it('always uses dedicated PSN scanner even when GOG database contains PSN games', async () => {
+    findGalaxyDbPath.mockResolvedValue(fixtureDb)
+    readGogGalaxyLibrary.mockReturnValue({
+      psn: [{ id: 'psn-stale', platform: 'psn', title: 'Stale PSN Game', installed: false, sourceId: '1' }],
+      steam: [{ id: 'steam-570', platform: 'steam', title: 'Dota 2', installed: false, sourceId: '570' }],
+    })
+
+    const library = await scanAllGames()
+
+    expect(scanPsn).toHaveBeenCalledTimes(1)
+    expect(library.results.find((result) => result.platform === 'psn')?.games[0]?.title).toBe('PSN Game')
+    expect(library.games.some((game) => game.title === 'Stale PSN Game')).toBe(false)
   })
 })

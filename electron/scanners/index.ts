@@ -31,10 +31,17 @@ async function scanAllWithIndividualScanners(): Promise<AggregatedLibrary> {
   return buildAggregatedLibrary(results)
 }
 
+/** Platforms that must always use their dedicated scanner (GOG Galaxy DB is stale or unsupported). */
+const PLATFORMS_EXCLUDED_FROM_GOG_DB: ReadonlySet<GamePlatform> = new Set(['psn'])
+
 async function scanPlatformWithGogFallback(
   platform: GamePlatform,
   gamesFromDb: Partial<Record<GamePlatform, Game[]>>,
 ): Promise<ScanResult> {
+  if (PLATFORMS_EXCLUDED_FROM_GOG_DB.has(platform)) {
+    return scanners[platform]()
+  }
+
   const dbGames = gamesFromDb[platform]
   if (dbGames && dbGames.length > 0) {
     return { platform, games: dbGames, errors: [] }
