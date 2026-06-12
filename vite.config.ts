@@ -68,6 +68,15 @@ export default defineConfig(({ command, mode }) => {
         // renderer: {},
       }),
     ],
+    server: {
+      watch: {
+        ignored: [
+          '**/coverage/**',
+          '**/test-results/**',
+          '**/playwright-report/**',
+        ],
+      },
+    },
     clearScreen: false,
   }
 })
