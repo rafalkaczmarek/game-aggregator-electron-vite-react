@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { readGogLibrary } from '../electron/scanners/gog/db'
+import { readGogGalaxyLibrary, readGogLibrary } from '../electron/scanners/gog/db'
 import { findGalaxyDbPath } from '../electron/scanners/gog/paths'
 
 const fixtureDb = path.join(import.meta.dirname, 'fixtures', 'gog', 'galaxy-2.0.db')
@@ -32,5 +32,21 @@ describe('gog scanner', () => {
       installed: true,
       sourceId: '1207658924',
     })
+  })
+
+  it('reads games from all supported platforms in the galaxy database', () => {
+    const byPlatform = readGogGalaxyLibrary(fixtureDb)
+
+    expect(byPlatform.gog).toHaveLength(2)
+    expect(byPlatform.steam).toEqual([
+      expect.objectContaining({
+        id: 'steam-570',
+        platform: 'steam',
+        title: 'Dota 2',
+        sourceId: '570',
+      }),
+    ])
+    expect(byPlatform.epic).toBeUndefined()
+    expect(byPlatform.psn).toBeUndefined()
   })
 })

@@ -10,6 +10,7 @@ declare global {
         library: import('../../shared/types/game').AggregatedLibrary,
       ) => Promise<void>
       clearLibraryCache: () => Promise<void>
+      setGogGalaxyDbPath: (dbPath: string | null) => Promise<void>
     }
   }
 }

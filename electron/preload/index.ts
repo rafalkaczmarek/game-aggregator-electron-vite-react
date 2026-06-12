@@ -31,6 +31,9 @@ contextBridge.exposeInMainWorld('__e2e', {
   clearLibraryCache() {
     return ipcRenderer.invoke('e2e:clear-library-cache')
   },
+  setGogGalaxyDbPath(dbPath: string | null) {
+    return ipcRenderer.invoke('e2e:set-gog-galaxy-db', dbPath)
+  },
 })
 
 // --------- Expose some API to the Renderer process ---------

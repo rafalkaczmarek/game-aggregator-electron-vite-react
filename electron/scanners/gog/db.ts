@@ -1,7 +1,12 @@
 import { DatabaseSync } from 'node:sqlite'
-import type { Game } from '../../../shared/types/game'
+import type { Game, GamePlatform } from '../../../shared/types/game'
 
-const GOG_RELEASE_PREFIX = 'gog_'
+const RELEASE_KEY_PREFIX_TO_PLATFORM: Record<string, GamePlatform> = {
+  gog_: 'gog',
+  steam_: 'steam',
+  epic_: 'epic',
+  psn_: 'psn',
+}
 
 interface GogRow {
   releaseKey: string
@@ -49,7 +54,6 @@ LEFT JOIN GamePieces images_gp
 LEFT JOIN GamePieces media_gp
   ON media_gp.releaseKey = ppd.gameReleaseKey
   AND media_gp.gamePieceTypeId = (SELECT id FROM GamePieceTypes WHERE type = 'media' LIMIT 1)
-WHERE ppd.gameReleaseKey LIKE 'gog_%'
 GROUP BY ppd.gameReleaseKey
 ORDER BY title COLLATE NOCASE;
 `
@@ -85,38 +89,69 @@ function parseImages(imagesJson: string | null, mediaJson: string | null): strin
   }
 }
 
-function toSourceId(releaseKey: string): string {
-  return releaseKey.startsWith(GOG_RELEASE_PREFIX)
-    ? releaseKey.slice(GOG_RELEASE_PREFIX.length)
-    : releaseKey
+function releaseKeyToPlatform(releaseKey: string): GamePlatform | null {
+  for (const [prefix, platform] of Object.entries(RELEASE_KEY_PREFIX_TO_PLATFORM)) {
+    if (releaseKey.startsWith(prefix)) return platform
+  }
+  return null
 }
 
-function toGogGame(row: GogRow): Game | null {
+function toSourceId(releaseKey: string, platform: GamePlatform): string {
+  const prefix = Object.entries(RELEASE_KEY_PREFIX_TO_PLATFORM).find(([, p]) => p === platform)?.[0]
+  return prefix && releaseKey.startsWith(prefix) ? releaseKey.slice(prefix.length) : releaseKey
+}
+
+function toGameId(platform: GamePlatform, releaseKey: string, sourceId: string): string {
+  if (platform === 'gog') return `gog-${releaseKey}`
+  return `${platform}-${sourceId}`
+}
+
+function toGame(row: GogRow): Game | null {
+  const platform = releaseKeyToPlatform(row.releaseKey)
+  if (!platform) return null
+
   const title = row.title?.trim()
   if (!title) return null
 
+  const sourceId = toSourceId(row.releaseKey, platform)
   const playtimeMinutes =
     typeof row.playtimeMinutes === 'number' && Number.isFinite(row.playtimeMinutes)
       ? Math.round(row.playtimeMinutes)
       : undefined
 
   return {
-    id: `gog-${row.releaseKey}`,
-    platform: 'gog',
+    id: toGameId(platform, row.releaseKey, sourceId),
+    platform,
     title,
     coverUrl: parseImages(row.imagesJson, row.mediaJson),
     playtimeMinutes,
     installed: row.installed > 0,
-    sourceId: toSourceId(row.releaseKey),
+    sourceId,
   }
 }
 
-export function readGogLibrary(dbPath: string): Game[] {
+function readGalaxyGames(dbPath: string): Game[] {
   const db = new DatabaseSync(dbPath, { readOnly: true })
   try {
     const rows = db.prepare(LIBRARY_QUERY).all() as unknown as GogRow[]
-    return rows.map(toGogGame).filter((game): game is Game => game !== null)
+    return rows.map(toGame).filter((game): game is Game => game !== null)
   } finally {
     db.close()
   }
+}
+
+export function readGogGalaxyLibrary(dbPath: string): Partial<Record<GamePlatform, Game[]>> {
+  const byPlatform: Partial<Record<GamePlatform, Game[]>> = {}
+
+  for (const game of readGalaxyGames(dbPath)) {
+    const games = byPlatform[game.platform] ?? []
+    games.push(game)
+    byPlatform[game.platform] = games
+  }
+
+  return byPlatform
+}
+
+export function readGogLibrary(dbPath: string): Game[] {
+  return readGogGalaxyLibrary(dbPath).gog ?? []
 }
