@@ -13,7 +13,10 @@
     "preview": "vite preview",
     "pretest": "vite build --mode=test",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "pnpm pretest && playwright test",
+    "test:e2e:coverage": "pnpm pretest && playwright test",
+    "test:coverage:all": "pnpm test:coverage && pnpm test:e2e:coverage",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p test/e2e/tsconfig.json"
   },
   "dependencies": {
@@ -21,18 +24,20 @@
     "electron-updater": "^6.8.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@tailwindcss/vite": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@playwright/test": "^1.60.0",
-    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "electron": "^42.1.0",
     "electron-builder": "^26.8.1",
     "jsdom": "^26.1.0",
+    "monocart-coverage-reports": "^2.12.12",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.0",

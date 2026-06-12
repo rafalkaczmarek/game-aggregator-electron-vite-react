@@ -47,8 +47,17 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Unit Tests
-        run: pnpm test
+      - name: Run Unit Tests with Coverage
+        run: pnpm test:coverage
+
+      - name: Upload Unit Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unit
+          path: coverage/unit/
+          if-no-files-found: ignore
+          retention-days: 14
 
   e2e:
     name: E2E tests
@@ -78,8 +87,17 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run E2E Tests
-        run: pnpm test:e2e
+      - name: Run E2E Tests with Coverage
+        run: pnpm test:e2e:coverage
+
+      - name: Upload E2E Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-e2e
+          path: coverage/e2e/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload E2E Screenshot
         if: always()

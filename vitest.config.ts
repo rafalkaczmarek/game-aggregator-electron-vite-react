@@ -18,5 +18,17 @@ export default defineConfig({
     exclude: ['test/e2e/**'],
     passWithNoTests: true,
     testTimeout: 1000 * 29,
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: './coverage/unit',
+      reporter: ['text', 'text-summary', 'html', 'lcov', 'json-summary'],
+      include: ['src/**/*.{ts,tsx}', 'electron/**/*.ts', 'shared/**/*.ts'],
+      exclude: [
+        'test/**',
+        '**/*.d.ts',
+        'dist/**',
+        'dist-electron/**',
+      ],
+    },
   },
 })

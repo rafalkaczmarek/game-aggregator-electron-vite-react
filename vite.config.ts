@@ -12,14 +12,18 @@ const external = Object.keys(
 )
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   rmSync('dist-electron', { recursive: true, force: true })
 
   const isServe = command === 'serve'
   const isBuild = command === 'build'
-  const sourcemap = isServe || !!process.env.VSCODE_DEBUG
+  const isTest = mode === 'test'
+  const sourcemap = isServe || isTest || !!process.env.VSCODE_DEBUG
 
   return {
+    build: {
+      sourcemap: isTest,
+    },
     resolve: {
       alias: {
         '@src': path.join(__dirname, 'src'),

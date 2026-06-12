@@ -31,6 +31,7 @@ yarn.lock
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/coverage/
 
 test/screenshots
 test/e2e-user-data

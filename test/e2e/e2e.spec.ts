@@ -13,6 +13,11 @@ import {
 import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
 import { createMockLibrary } from '../fixtures/games'
+import {
+  e2eCoverageEnabled,
+  startPageCoverage,
+  stopPageCoverageAndReport,
+} from './coverage'
 
 const root = path.resolve(import.meta.dirname, '..', '..')
 const e2eUserData = path.join(root, 'test', 'e2e-user-data')
@@ -57,6 +62,10 @@ test.beforeAll(async () => {
   })
   page = await electronApp.firstWindow()
 
+  if (e2eCoverageEnabled) {
+    await startPageCoverage(page)
+  }
+
   const mainWin: JSHandle<BrowserWindow> = await electronApp.browserWindow(page)
   await mainWin.evaluate(async (win) => {
     win.webContents.executeJavaScript('console.log("Execute JavaScript with e2e testing.")')
@@ -65,6 +74,10 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   if (page) {
+    if (e2eCoverageEnabled) {
+      await stopPageCoverageAndReport(page)
+    }
+
     await page.screenshot({ path: 'test/screenshots/e2e.png' })
     await page.close()
   }
