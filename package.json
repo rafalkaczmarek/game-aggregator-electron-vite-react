@@ -14,7 +14,7 @@
     "pretest": "vite build --mode=test",
     "test": "vitest run",
     "test:e2e": "pnpm pretest && playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p test/e2e/tsconfig.json"
   },
   "dependencies": {
     "@node-steam/vdf": "^2.2.0",
