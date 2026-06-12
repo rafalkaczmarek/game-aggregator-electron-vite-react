@@ -1,15 +1,18 @@
 import {
   getProfileFromUserName,
   getPurchasedGames,
+  getUserPlayedGames,
   getUserTitles,
   type AuthorizationPayload,
   type PurchasedGame,
   type TrophyTitle,
+  type UserPlayedGamesResponse,
 } from 'psn-api'
 import { getE2ePsnFixture } from './e2e'
 
 const PURCHASED_PAGE_SIZE = 100
 const TROPHY_PAGE_SIZE = 800
+const PLAYED_PAGE_SIZE = 100
 
 export async function resolveAccountId(
   authorization: AuthorizationPayload,
@@ -56,6 +59,37 @@ export async function fetchAllPurchasedGames(
   }
 
   return games
+}
+
+export async function fetchAllUserPlayedGames(
+  authorization: AuthorizationPayload,
+  accountId: string,
+): Promise<UserPlayedGamesResponse['titles']> {
+  const fixture = getE2ePsnFixture()
+  if (fixture?.playedGames) {
+    return fixture.playedGames
+  }
+
+  const titles: UserPlayedGamesResponse['titles'] = []
+  let offset = 0
+
+  while (true) {
+    const response = await getUserPlayedGames(authorization, accountId, {
+      categories: 'ps4_game,ps5_native_game,pspc_game,unknown',
+      limit: PLAYED_PAGE_SIZE,
+      offset,
+    })
+
+    titles.push(...response.titles)
+
+    if (response.titles.length === 0 || titles.length >= response.totalItemCount) {
+      break
+    }
+
+    offset += PLAYED_PAGE_SIZE
+  }
+
+  return titles
 }
 
 export async function fetchAllUserTitles(

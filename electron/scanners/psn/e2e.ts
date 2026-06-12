@@ -1,7 +1,8 @@
-import type { PurchasedGame, TrophyTitle } from 'psn-api'
+import type { PurchasedGame, TrophyTitle, UserPlayedGamesResponse } from 'psn-api'
 
 export interface PsnE2eFixture {
   purchasedGames?: PurchasedGame[]
+  playedGames?: UserPlayedGamesResponse['titles']
   userTitles?: TrophyTitle[]
   accountId?: string
 }

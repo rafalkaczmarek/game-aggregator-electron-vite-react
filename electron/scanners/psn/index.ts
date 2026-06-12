@@ -1,8 +1,13 @@
 import { getPsnNpsso, getPsnOnlineId } from '../../main/settings/store'
 import type { ScanResult } from '../../../shared/types/game'
 import { authenticateWithNpsso } from './auth'
-import { fetchAllPurchasedGames, fetchAllUserTitles, resolveAccountId } from './api'
-import { purchasedGameToGame, trophyTitleToGame } from './map'
+import {
+  fetchAllPurchasedGames,
+  fetchAllUserPlayedGames,
+  fetchAllUserTitles,
+  resolveAccountId,
+} from './api'
+import { buildPlayedGamesIndex, purchasedGameToGame, trophyTitleToGame } from './map'
 
 export async function scanPsn(onlineIdOverride?: string): Promise<ScanResult> {
   const errors: string[] = []
@@ -20,12 +25,30 @@ export async function scanPsn(onlineIdOverride?: string): Promise<ScanResult> {
     const authorization = await authenticateWithNpsso(npsso)
     const onlineId = onlineIdOverride?.trim() || (await getPsnOnlineId())
 
-    const games = onlineId
-      ? (await fetchAllUserTitles(
+    let games: ReturnType<typeof purchasedGameToGame>[]
+
+    if (onlineId) {
+      games = (
+        await fetchAllUserTitles(
           authorization,
           await resolveAccountId(authorization, onlineId),
-        )).map(trophyTitleToGame)
-      : (await fetchAllPurchasedGames(authorization)).map(purchasedGameToGame)
+        )
+      ).map(trophyTitleToGame)
+    } else {
+      const purchasedGames = await fetchAllPurchasedGames(authorization)
+
+      let playedIndex = new Map<string, { playtimeMinutes: number }>()
+      try {
+        const playedGames = await fetchAllUserPlayedGames(authorization, 'me')
+        playedIndex = buildPlayedGamesIndex(playedGames)
+      } catch (error) {
+        errors.push(
+          `PSN play history unavailable: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+
+      games = purchasedGames.map((game) => purchasedGameToGame(game, playedIndex))
+    }
 
     games.sort((a, b) => a.title.localeCompare(b.title))
 

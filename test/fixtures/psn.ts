@@ -1,4 +1,5 @@
 import type { PsnE2eFixture } from '../../electron/scanners/psn/e2e'
+import { createPlayedGame } from './psn-played'
 
 export const psnPurchasedGamesFixture: PsnE2eFixture = {
   purchasedGames: [
@@ -36,6 +37,14 @@ export const psnPurchasedGamesFixture: PsnE2eFixture = {
       productId: 'PROD456',
       titleId: 'PPSA01411_00',
     },
+  ],
+  playedGames: [
+    createPlayedGame({
+      titleId: 'PPSA01467_00',
+      name: "Marvel's Spider-Man",
+      playDuration: 'PT12H30M',
+      playCount: 42,
+    }),
   ],
 }
 

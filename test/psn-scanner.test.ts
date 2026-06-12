@@ -5,6 +5,7 @@ const getPsnOnlineId = vi.fn<() => Promise<string | undefined>>()
 const authenticateWithNpsso = vi.fn()
 const resolveAccountId = vi.fn()
 const fetchAllPurchasedGames = vi.fn()
+const fetchAllUserPlayedGames = vi.fn()
 const fetchAllUserTitles = vi.fn()
 
 vi.mock('../electron/main/settings/store', () => ({
@@ -19,6 +20,7 @@ vi.mock('../electron/scanners/psn/auth', () => ({
 vi.mock('../electron/scanners/psn/api', () => ({
   resolveAccountId,
   fetchAllPurchasedGames,
+  fetchAllUserPlayedGames,
   fetchAllUserTitles,
 }))
 
@@ -29,6 +31,7 @@ describe('scanPsn', () => {
     authenticateWithNpsso.mockReset()
     resolveAccountId.mockReset()
     fetchAllPurchasedGames.mockReset()
+    fetchAllUserPlayedGames.mockReset()
     fetchAllUserTitles.mockReset()
   })
 
@@ -59,12 +62,35 @@ describe('scanPsn', () => {
         image: { url: 'https://example.com/miles.png' },
       },
     ])
+    fetchAllUserPlayedGames.mockResolvedValue([
+      {
+        titleId: 'PPSA01411_00',
+        name: "Marvel's Spider-Man: Miles Morales",
+        localizedName: "Marvel's Spider-Man: Miles Morales",
+        imageUrl: 'https://example.com/miles.png',
+        localizedImageUrl: 'https://example.com/miles.png',
+        category: 'ps5_native_game',
+        service: 'none_purchased',
+        playCount: 5,
+        concept: {
+          id: 1,
+          titleIds: ['PPSA01411_00'],
+          name: "Marvel's Spider-Man: Miles Morales",
+          media: { audios: [], videos: [], images: [] },
+        },
+        media: {},
+        firstPlayedDateTime: '2024-01-01T00:00:00Z',
+        lastPlayedDateTime: '2024-06-01T00:00:00Z',
+        playDuration: 'PT3H',
+      },
+    ])
 
     const { scanPsn } = await import('../electron/scanners/psn')
     const result = await scanPsn()
 
     expect(authenticateWithNpsso).toHaveBeenCalledWith('npsso-token')
     expect(fetchAllPurchasedGames).toHaveBeenCalledWith({ accessToken: 'access-token' })
+    expect(fetchAllUserPlayedGames).toHaveBeenCalledWith({ accessToken: 'access-token' }, 'me')
     expect(fetchAllUserTitles).not.toHaveBeenCalled()
     expect(resolveAccountId).not.toHaveBeenCalled()
     expect(result.platform).toBe('psn')
@@ -74,8 +100,36 @@ describe('scanPsn', () => {
         id: 'psn-PPSA01411_00',
         title: "Marvel's Spider-Man: Miles Morales",
         platform: 'psn',
+        playtimeMinutes: 180,
       }),
     ])
+  })
+
+  it('returns purchased games when play history is unavailable', async () => {
+    vi.resetModules()
+    getPsnNpsso.mockResolvedValue('npsso-token')
+    getPsnOnlineId.mockResolvedValue(undefined)
+    authenticateWithNpsso.mockResolvedValue({ accessToken: 'access-token' })
+    fetchAllPurchasedGames.mockResolvedValue([
+      {
+        titleId: 'PPSA01411_00',
+        entitlementId: 'ENT123',
+        name: "Marvel's Spider-Man: Miles Morales",
+        image: { url: 'https://example.com/miles.png' },
+      },
+    ])
+    fetchAllUserPlayedGames.mockRejectedValue(new Error('privacy blocked'))
+
+    const { scanPsn } = await import('../electron/scanners/psn')
+    const result = await scanPsn()
+
+    expect(result.games).toEqual([
+      expect.objectContaining({
+        id: 'psn-PPSA01411_00',
+        title: "Marvel's Spider-Man: Miles Morales",
+      }),
+    ])
+    expect(result.errors).toEqual(['PSN play history unavailable: privacy blocked'])
   })
 
   it('loads trophy titles when scanning a public online id', async () => {

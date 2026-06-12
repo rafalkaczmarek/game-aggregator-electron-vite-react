@@ -64,6 +64,12 @@ test.describe('PSN scanner', () => {
       platform: 'psn',
       sourceId: 'PPSA01411_00',
     })
+
+    const spiderMan = result.games.find((game) => game.title === "Marvel's Spider-Man")
+    const astro = result.games.find((game) => game.title === "Astro's Playroom")
+
+    expect(spiderMan?.playtimeMinutes).toBe(750)
+    expect(astro?.playtimeMinutes).toBeUndefined()
   })
 
   test('psn platform scan reads trophy titles when online id is configured', async ({ page }) => {
@@ -146,6 +152,8 @@ test.describe('PSN scanner', () => {
 
     await expect(page.getByText("Marvel's Spider-Man")).toBeVisible()
     await expect(page.getByText("Astro's Playroom")).toBeVisible()
+    await expect(page.getByText('13 hrs')).toBeVisible()
+    await expect(page.getByText('Not played')).toBeVisible()
 
     const psnRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'psn' })
     await expect(psnRow).toContainText('2 games')

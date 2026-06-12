@@ -1,19 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getProfileFromUserName, getPurchasedGames, getUserTitles } = vi.hoisted(() => ({
+const { getProfileFromUserName, getPurchasedGames, getUserPlayedGames, getUserTitles } = vi.hoisted(() => ({
   getProfileFromUserName: vi.fn(),
   getPurchasedGames: vi.fn(),
+  getUserPlayedGames: vi.fn(),
   getUserTitles: vi.fn(),
 }))
 
 vi.mock('psn-api', () => ({
   getProfileFromUserName,
   getPurchasedGames,
+  getUserPlayedGames,
   getUserTitles,
 }))
 
 import {
   fetchAllPurchasedGames,
+  fetchAllUserPlayedGames,
   fetchAllUserTitles,
   resolveAccountId,
 } from '../electron/scanners/psn/api'
@@ -24,6 +27,7 @@ describe('psn api', () => {
   beforeEach(() => {
     getProfileFromUserName.mockReset()
     getPurchasedGames.mockReset()
+    getUserPlayedGames.mockReset()
     getUserTitles.mockReset()
   })
 
@@ -76,6 +80,38 @@ describe('psn api', () => {
       start: 100,
       sortBy: 'ACTIVE_DATE',
       sortDirection: 'desc',
+    })
+  })
+
+  it('pages through played games until all items are fetched', async () => {
+    getUserPlayedGames
+      .mockResolvedValueOnce({
+        titles: [{ titleId: 'PPSA00001_00' }],
+        totalItemCount: 2,
+        nextOffset: 1,
+        previousOffset: 0,
+      })
+      .mockResolvedValueOnce({
+        titles: [{ titleId: 'PPSA00002_00' }],
+        totalItemCount: 2,
+        nextOffset: 2,
+        previousOffset: 1,
+      })
+
+    await expect(fetchAllUserPlayedGames(authorization, 'me')).resolves.toEqual([
+      { titleId: 'PPSA00001_00' },
+      { titleId: 'PPSA00002_00' },
+    ])
+
+    expect(getUserPlayedGames).toHaveBeenNthCalledWith(1, authorization, 'me', {
+      categories: 'ps4_game,ps5_native_game,pspc_game,unknown',
+      limit: 100,
+      offset: 0,
+    })
+    expect(getUserPlayedGames).toHaveBeenNthCalledWith(2, authorization, 'me', {
+      categories: 'ps4_game,ps5_native_game,pspc_game,unknown',
+      limit: 100,
+      offset: 100,
     })
   })
 
