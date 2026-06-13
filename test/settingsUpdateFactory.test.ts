@@ -67,5 +67,19 @@ describe('settingsUpdateFactory', () => {
         message: 'PSN NPSSO token cannot be empty. Use Clear token to remove it.',
       })
     })
+
+    it('reports no changes when drafts match saved state', () => {
+      expect(
+        settingsUpdateFactory({
+          section: 'psn',
+          draftNpsso: '',
+          draftOnlineId: 'player',
+          state: { steamApiKeySet: false, psnNpssoSet: true, psnOnlineId: 'player' },
+        }),
+      ).toEqual({
+        kind: 'message',
+        message: 'No changes to save.',
+      })
+    })
   })
 })

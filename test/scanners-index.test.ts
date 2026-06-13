@@ -106,6 +106,21 @@ describe('scanner aggregator', () => {
     expect(psnResult?.games[0]?.title).toBe('PSN Game')
   })
 
+  it('falls back to individual scanners when GOG database read fails', async () => {
+    findGalaxyDbPath.mockResolvedValue(fixtureDb)
+    readGogGalaxyLibrary.mockImplementation(() => {
+      throw new Error('corrupt database')
+    })
+
+    const library = await scanAllGames()
+
+    expect(scanSteam).toHaveBeenCalledTimes(1)
+    expect(scanGog).toHaveBeenCalledTimes(1)
+    expect(scanEpic).toHaveBeenCalledTimes(1)
+    expect(scanPsn).toHaveBeenCalledTimes(1)
+    expect(library.games).toHaveLength(4)
+  })
+
   it('always uses dedicated PSN scanner even when GOG database contains PSN games', async () => {
     findGalaxyDbPath.mockResolvedValue(fixtureDb)
     readGogGalaxyLibrary.mockReturnValue({

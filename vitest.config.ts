@@ -39,7 +39,18 @@ export default defineConfig({
         '**/*.d.ts',
         'dist/**',
         'dist-electron/**',
+        // Electron bootstrap / preload — covered by e2e, not unit-testable without side effects
+        'electron/main/index.ts',
+        'electron/main/update.ts',
+        'electron/preload/**',
+        'src/main.tsx',
       ],
+      thresholds: {
+        statements: 90,
+        branches: 75,
+        functions: 90,
+        lines: 90,
+      },
     },
   },
 })

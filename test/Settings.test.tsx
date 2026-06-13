@@ -109,4 +109,93 @@ describe('Settings', () => {
       expect(screen.getByText('clear failed')).toBeInTheDocument()
     })
   })
+
+  it('loads psn online id from settings state', async () => {
+    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: true, psnOnlineId: 'player-one' })
+
+    render(<Settings />)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('PSN Online ID (optional)')).toHaveValue('player-one')
+    })
+    expect(screen.getByText('PSN NPSSO configured')).toBeInTheDocument()
+  })
+
+  it('saves trimmed psn npsso and online id', async () => {
+    const user = userEvent.setup()
+    update.mockResolvedValue({
+      steamApiKeySet: false,
+      psnNpssoSet: true,
+      psnOnlineId: 'player-one',
+    })
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText('PSN NPSSO token'), '  npsso-token  ')
+    await user.type(screen.getByLabelText('PSN Online ID (optional)'), '  player-one  ')
+    await user.click(screen.getByRole('button', { name: 'Save account settings' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Settings saved.')).toBeInTheDocument()
+    })
+    expect(update).toHaveBeenCalledWith({
+      psnNpsso: 'npsso-token',
+      psnOnlineId: 'player-one',
+    })
+  })
+
+  it('shows message when saving whitespace-only npsso', async () => {
+    const user = userEvent.setup()
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText('PSN NPSSO token'), '   ')
+    await user.click(screen.getByRole('button', { name: 'Save account settings' }))
+
+    expect(update).not.toHaveBeenCalled()
+    expect(
+      screen.getByText('PSN NPSSO token cannot be empty. Use Clear token to remove it.'),
+    ).toBeInTheDocument()
+  })
+
+  it('clears configured psn npsso token', async () => {
+    const user = userEvent.setup()
+    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: true })
+    update.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Clear token' })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Clear token' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('PSN NPSSO token removed.')).toBeInTheDocument()
+    })
+    expect(update).toHaveBeenCalledWith({ psnNpsso: '' })
+  })
+
+  it('shows psn save error message when update fails', async () => {
+    const user = userEvent.setup()
+    update.mockRejectedValue(new Error('psn save failed'))
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText('PSN NPSSO token'), 'bad-token')
+    await user.click(screen.getByRole('button', { name: 'Save account settings' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('psn save failed')).toBeInTheDocument()
+    })
+  })
 })

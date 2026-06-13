@@ -39,4 +39,14 @@ describe('scanGog', () => {
       errors: ['GOG Galaxy database not found'],
     })
   })
+
+  it('reports database read failures', async () => {
+    findGalaxyDbPath.mockResolvedValueOnce('/tmp/missing-galaxy.db')
+
+    const result = await scanGog()
+
+    expect(result.platform).toBe('gog')
+    expect(result.games).toEqual([])
+    expect(result.errors[0]).toMatch(/^GOG Galaxy database read failed:/)
+  })
 })

@@ -138,4 +138,61 @@ describe('settings store', () => {
       psnOnlineId: 'player-one',
     })
   })
+
+  it('returns psn npsso from environment when set', async () => {
+    vi.stubEnv('PSN_NPSSO', ' env-npsso ')
+    const { getPsnNpsso, getSettingsState } = await loadStore()
+
+    await expect(getPsnNpsso()).resolves.toBe('env-npsso')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: true,
+    })
+  })
+
+  it('returns psn online id from environment when set', async () => {
+    vi.stubEnv('PSN_ONLINE_ID', ' env-player ')
+    const { getPsnOnlineId, getSettingsState } = await loadStore()
+
+    await expect(getPsnOnlineId()).resolves.toBe('env-player')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: false,
+      psnOnlineId: 'env-player',
+    })
+  })
+
+  it('clears stored psn npsso and online id', async () => {
+    const { updatePsnNpsso, updatePsnOnlineId, getPsnNpsso, getPsnOnlineId, getSettingsState } =
+      await loadStore()
+
+    await updatePsnNpsso('to-remove')
+    await updatePsnOnlineId('player')
+    await updatePsnNpsso('')
+    await updatePsnOnlineId('')
+
+    await expect(getPsnNpsso()).resolves.toBeUndefined()
+    await expect(getPsnOnlineId()).resolves.toBeUndefined()
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      psnNpssoSet: false,
+    })
+  })
+
+  it('returns undefined when stored psn npsso cannot be decrypted', async () => {
+    safeStorage.isEncryptionAvailable.mockReturnValue(true)
+    safeStorage.decryptString.mockImplementation(() => {
+      throw new Error('decrypt failed')
+    })
+
+    const encoded = Buffer.from('broken', 'utf8').toString('base64')
+    await writeFile(
+      path.join(tmpDir, 'settings.json'),
+      `${JSON.stringify({ psnNpssoEnc: encoded })}\n`,
+      'utf8',
+    )
+
+    const { getPsnNpsso } = await loadStore()
+    await expect(getPsnNpsso()).resolves.toBeUndefined()
+  })
 })
