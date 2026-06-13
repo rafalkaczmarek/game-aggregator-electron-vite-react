@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+dist-electron
+release
+coverage
+test-results
+playwright-report
+playwright/.cache
+pnpm-lock.yaml

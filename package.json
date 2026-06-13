@@ -17,7 +17,9 @@
     "test:e2e": "pnpm pretest && playwright test",
     "test:e2e:coverage": "pnpm pretest && playwright test",
     "test:coverage:all": "pnpm test:coverage && pnpm test:e2e:coverage",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p test/e2e/tsconfig.json"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p test/e2e/tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@node-steam/vdf": "^2.2.0",
@@ -40,6 +42,7 @@
     "electron-builder": "^26.15.3",
     "jsdom": "^26.1.0",
     "monocart-coverage-reports": "^2.12.12",
+    "prettier": "^3.6.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.0",
