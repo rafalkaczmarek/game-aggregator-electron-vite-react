@@ -20,7 +20,12 @@ function steamCoverUrl(appId: string): string {
   return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
 }
 
-function toSteamGame(appId: string, title: string, installed: boolean, playtimeMinutes?: number): Game {
+function toSteamGame(
+  appId: string,
+  title: string,
+  installed: boolean,
+  playtimeMinutes?: number,
+): Game {
   return {
     id: `steam-${appId}`,
     platform: 'steam',
@@ -44,7 +49,9 @@ export async function scanAcfDirectory(
     return
   }
 
-  const manifests = entries.filter((name) => name.startsWith('appmanifest_') && name.endsWith('.acf'))
+  const manifests = entries.filter(
+    (name) => name.startsWith('appmanifest_') && name.endsWith('.acf'),
+  )
 
   for (const manifestName of manifests) {
     const manifestPath = path.join(steamAppsDir, manifestName)
@@ -61,7 +68,9 @@ export async function scanAcfDirectory(
 
       games.set(appId, toSteamGame(appId, title, installed))
     } catch (error) {
-      errors.push(`Failed to parse ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`)
+      errors.push(
+        `Failed to parse ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 }
@@ -117,10 +126,7 @@ export function mergeLocalApps(
       continue
     }
 
-    games.set(
-      appId,
-      toSteamGame(appId, `Steam App ${appId}`, false, info.playtimeMinutes),
-    )
+    games.set(appId, toSteamGame(appId, `Steam App ${appId}`, false, info.playtimeMinutes))
     missingNames.push(appId)
   }
 
@@ -134,7 +140,10 @@ export async function fetchStoreAppName(appId: string): Promise<string | null> {
     const response = await fetch(url)
     if (!response.ok) return null
 
-    const payload = (await response.json()) as Record<string, { success?: boolean; data?: { name?: string } }>
+    const payload = (await response.json()) as Record<
+      string,
+      { success?: boolean; data?: { name?: string } }
+    >
     const entry = payload[appId]
     if (!entry?.success || !entry.data?.name) return null
     return entry.data.name

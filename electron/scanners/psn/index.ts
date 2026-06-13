@@ -29,10 +29,7 @@ export async function scanPsn(onlineIdOverride?: string): Promise<ScanResult> {
 
     if (onlineId) {
       games = (
-        await fetchAllUserTitles(
-          authorization,
-          await resolveAccountId(authorization, onlineId),
-        )
+        await fetchAllUserTitles(authorization, await resolveAccountId(authorization, onlineId))
       ).map(trophyTitleToGame)
     } else {
       const purchasedGames = await fetchAllPurchasedGames(authorization)
@@ -58,9 +55,7 @@ export async function scanPsn(onlineIdOverride?: string): Promise<ScanResult> {
       errors,
     }
   } catch (error) {
-    errors.push(
-      `PSN scan failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    errors.push(`PSN scan failed: ${error instanceof Error ? error.message : String(error)}`)
     return {
       platform: 'psn',
       games: [],

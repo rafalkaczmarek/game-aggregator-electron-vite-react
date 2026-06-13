@@ -15,7 +15,13 @@ export default function GameCover({ game, className = '' }: GameCoverProps) {
         className={`flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 text-slate-500 ${className}`}
         aria-hidden
       >
-        <svg className='h-8 w-8 opacity-60' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.5'>
+        <svg
+          className='h-8 w-8 opacity-60'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='1.5'
+        >
           <path
             strokeLinecap='round'
             strokeLinejoin='round'

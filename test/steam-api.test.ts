@@ -56,10 +56,13 @@ describe('steam web api enrichment', () => {
   })
 
   it('throws when api responds with error status', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 403 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 403 })),
+    )
 
-    await expect(
-      enrichFromSteamWebApi('bad-key', '76561198000000000', new Map()),
-    ).rejects.toThrow('Steam Web API responded with 403')
+    await expect(enrichFromSteamWebApi('bad-key', '76561198000000000', new Map())).rejects.toThrow(
+      'Steam Web API responded with 403',
+    )
   })
 })

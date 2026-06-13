@@ -3,7 +3,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { scanAcfDirectory } from '../electron/scanners/steam/acf'
-import { findSteamPath, getMostRecentSteamId, getSteamAppsDirs } from '../electron/scanners/steam/paths'
+import {
+  findSteamPath,
+  getMostRecentSteamId,
+  getSteamAppsDirs,
+} from '../electron/scanners/steam/paths'
 import { asRecord, asString, readVdfFile } from '../electron/scanners/steam/vdf'
 
 const fixturesDir = path.join(import.meta.dirname, 'fixtures', 'steam')
@@ -29,7 +33,9 @@ describe('steam scanner', () => {
   it('collects steamapps dirs from libraryfolders.vdf', async () => {
     const dirs = await getSteamAppsDirs(steamRoot)
     expect(dirs).toContain(path.join(steamRoot, 'steamapps'))
-    expect(dirs.some((dir) => dir.endsWith(`${path.sep}SteamLibrary${path.sep}steamapps`))).toBe(true)
+    expect(dirs.some((dir) => dir.endsWith(`${path.sep}SteamLibrary${path.sep}steamapps`))).toBe(
+      true,
+    )
   })
 
   it('reads most recent steam id from loginusers.vdf', async () => {

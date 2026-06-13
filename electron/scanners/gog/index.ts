@@ -22,7 +22,9 @@ export async function scanGog(): Promise<ScanResult> {
       errors,
     }
   } catch (error) {
-    errors.push(`GOG Galaxy database read failed: ${error instanceof Error ? error.message : String(error)}`)
+    errors.push(
+      `GOG Galaxy database read failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     return {
       platform: 'gog',
       games: [],

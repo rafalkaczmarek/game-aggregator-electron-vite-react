@@ -39,7 +39,9 @@ export async function scanSteam(): Promise<ScanResult> {
     }
   }
 
-  const unresolvedNames = missingNames.filter((appId) => games.get(appId)?.title.startsWith('Steam App '))
+  const unresolvedNames = missingNames.filter((appId) =>
+    games.get(appId)?.title.startsWith('Steam App '),
+  )
   if (unresolvedNames.length > 0) {
     await resolveMissingNames(games, unresolvedNames, errors)
   }

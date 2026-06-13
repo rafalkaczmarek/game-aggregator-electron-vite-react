@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getProfileFromUserName, getPurchasedGames, getUserPlayedGames, getUserTitles } = vi.hoisted(() => ({
-  getProfileFromUserName: vi.fn(),
-  getPurchasedGames: vi.fn(),
-  getUserPlayedGames: vi.fn(),
-  getUserTitles: vi.fn(),
-}))
+const { getProfileFromUserName, getPurchasedGames, getUserPlayedGames, getUserTitles } = vi.hoisted(
+  () => ({
+    getProfileFromUserName: vi.fn(),
+    getPurchasedGames: vi.fn(),
+    getUserPlayedGames: vi.fn(),
+    getUserTitles: vi.fn(),
+  }),
+)
 
 vi.mock('psn-api', () => ({
   getProfileFromUserName,

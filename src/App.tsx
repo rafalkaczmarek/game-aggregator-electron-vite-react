@@ -23,8 +23,8 @@ function App() {
                     Wszystkie gry w jednym miejscu.
                   </h1>
                   <p className='max-w-2xl text-base leading-7 text-slate-600 sm:text-lg'>
-                    Steam, GOG, Epic i PSN — jedna lista. Skanery działają w main process; szczegóły w{' '}
-                    <code>docs/ARCHITECTURE.md</code>.
+                    Steam, GOG, Epic i PSN — jedna lista. Skanery działają w main process; szczegóły
+                    w <code>docs/ARCHITECTURE.md</code>.
                   </p>
                 </div>
               </div>

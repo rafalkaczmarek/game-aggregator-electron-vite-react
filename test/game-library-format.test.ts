@@ -63,7 +63,13 @@ describe('game library format helpers', () => {
     it('returns undefined playtime when all entries are unplayed', () => {
       const unplayed = groupGamesByTitle([
         { id: 'gog-1', platform: 'gog', title: 'Idle Game', installed: false },
-        { id: 'epic-1', platform: 'epic', title: 'Idle Game', installed: false, playtimeMinutes: 0 },
+        {
+          id: 'epic-1',
+          platform: 'epic',
+          title: 'Idle Game',
+          installed: false,
+          playtimeMinutes: 0,
+        },
       ])[0]
 
       expect(getGroupedGamePlaytime(unplayed)).toBeUndefined()
@@ -100,7 +106,11 @@ describe('game library format helpers', () => {
       const sorted = sortGamesByTitle(sampleGames)
 
       expect(sorted.map((game) => game.title)).toEqual(['Alan Wake', 'Cyberpunk 2077', 'Dota 2'])
-      expect(sampleGames.map((game) => game.title)).toEqual(['Dota 2', 'Cyberpunk 2077', 'Alan Wake'])
+      expect(sampleGames.map((game) => game.title)).toEqual([
+        'Dota 2',
+        'Cyberpunk 2077',
+        'Alan Wake',
+      ])
     })
   })
 
@@ -165,7 +175,12 @@ describe('game library format helpers', () => {
 
     it('matches titles ignoring trademark symbols and colons', () => {
       const grouped = groupGamesByTitle([
-        { id: 'steam-1', platform: 'steam', title: 'Call of Duty®: Modern Warfare', installed: false },
+        {
+          id: 'steam-1',
+          platform: 'steam',
+          title: 'Call of Duty®: Modern Warfare',
+          installed: false,
+        },
         { id: 'gog-1', platform: 'gog', title: 'Call of Duty Modern Warfare™', installed: false },
       ])
 

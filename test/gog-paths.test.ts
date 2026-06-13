@@ -3,11 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const fixtureDb = path.join(import.meta.dirname, 'fixtures', 'gog', 'galaxy-2.0.db')
 
-const {
-  defaultGalaxyDbCandidates,
-  findGalaxyDbPath,
-  setE2eGalaxyDbPath,
-} = await import('../electron/scanners/gog/paths')
+const { defaultGalaxyDbCandidates, findGalaxyDbPath, setE2eGalaxyDbPath } =
+  await import('../electron/scanners/gog/paths')
 
 describe('gog paths', () => {
   afterEach(() => {
@@ -63,7 +60,9 @@ describe('gog paths', () => {
   it('builds linux candidate paths', () => {
     const platformSpy = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
 
-    expect(defaultGalaxyDbCandidates()[0]).toMatch(/[\\/]\.config[\\/]GOG\.com[\\/]Galaxy[\\/]storage[\\/]galaxy-2\.0\.db$/)
+    expect(defaultGalaxyDbCandidates()[0]).toMatch(
+      /[\\/]\.config[\\/]GOG\.com[\\/]Galaxy[\\/]storage[\\/]galaxy-2\.0\.db$/,
+    )
 
     platformSpy.mockRestore()
   })

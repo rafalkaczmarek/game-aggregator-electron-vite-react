@@ -11,7 +11,9 @@ declare global {
       ) => Promise<void>
       clearLibraryCache: () => Promise<void>
       setGogGalaxyDbPath: (dbPath: string | null) => Promise<void>
-      setPsnFixture: (fixture: import('../../electron/scanners/psn/e2e').PsnE2eFixture | null) => Promise<void>
+      setPsnFixture: (
+        fixture: import('../../electron/scanners/psn/e2e').PsnE2eFixture | null,
+      ) => Promise<void>
     }
   }
 }

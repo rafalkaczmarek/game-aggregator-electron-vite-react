@@ -11,7 +11,9 @@ const scanPsn = vi.fn<() => Promise<ScanResult>>()
 const findGalaxyDbPath = vi.fn<() => Promise<string | null>>(async () => null)
 const readGogGalaxyLibrary = vi.fn<(dbPath: string) => Partial<Record<Game['platform'], Game[]>>>()
 const gogDbMocks = vi.hoisted(() => ({
-  readGogGalaxyLibraryActual: null as ((dbPath: string) => Partial<Record<Game['platform'], Game[]>>) | null,
+  readGogGalaxyLibraryActual: null as
+    | ((dbPath: string) => Partial<Record<Game['platform'], Game[]>>)
+    | null,
 }))
 
 vi.mock('../electron/scanners/steam', () => ({ scanSteam }))
@@ -47,7 +49,9 @@ describe('scanner aggregator', () => {
     findGalaxyDbPath.mockReset()
     findGalaxyDbPath.mockResolvedValue(null)
     readGogGalaxyLibrary.mockReset()
-    readGogGalaxyLibrary.mockImplementation((dbPath) => gogDbMocks.readGogGalaxyLibraryActual!(dbPath))
+    readGogGalaxyLibrary.mockImplementation((dbPath) =>
+      gogDbMocks.readGogGalaxyLibraryActual!(dbPath),
+    )
 
     scanSteam.mockResolvedValue(stubResult('steam', 'Steam Game'))
     scanGog.mockResolvedValue(stubResult('gog', 'GOG Game'))
@@ -124,14 +128,26 @@ describe('scanner aggregator', () => {
   it('always uses dedicated PSN scanner even when GOG database contains PSN games', async () => {
     findGalaxyDbPath.mockResolvedValue(fixtureDb)
     readGogGalaxyLibrary.mockReturnValue({
-      psn: [{ id: 'psn-stale', platform: 'psn', title: 'Stale PSN Game', installed: false, sourceId: '1' }],
-      steam: [{ id: 'steam-570', platform: 'steam', title: 'Dota 2', installed: false, sourceId: '570' }],
+      psn: [
+        {
+          id: 'psn-stale',
+          platform: 'psn',
+          title: 'Stale PSN Game',
+          installed: false,
+          sourceId: '1',
+        },
+      ],
+      steam: [
+        { id: 'steam-570', platform: 'steam', title: 'Dota 2', installed: false, sourceId: '570' },
+      ],
     })
 
     const library = await scanAllGames()
 
     expect(scanPsn).toHaveBeenCalledTimes(1)
-    expect(library.results.find((result) => result.platform === 'psn')?.games[0]?.title).toBe('PSN Game')
+    expect(library.results.find((result) => result.platform === 'psn')?.games[0]?.title).toBe(
+      'PSN Game',
+    )
     expect(library.games.some((game) => game.title === 'Stale PSN Game')).toBe(false)
   })
 })

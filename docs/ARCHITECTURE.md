@@ -13,12 +13,12 @@ Jedna aplikacja desktopowa wyświetlająca gry z:
 
 ## Dlaczego Electron (a nie Tauri)
 
-| Kryterium | Electron | Tauri |
-|-----------|----------|-------|
-| Czas do MVP | Krótszy | Dłuższy (Rust) |
-| Integracje npm (`psn-api`, VDF) | Natywne w main | Port do Rust |
-| RAM / rozmiar | Większy | Mniejszy |
-| Jeden język (TS) | Tak | TS + Rust |
+| Kryterium                       | Electron       | Tauri          |
+| ------------------------------- | -------------- | -------------- |
+| Czas do MVP                     | Krótszy        | Dłuższy (Rust) |
+| Integracje npm (`psn-api`, VDF) | Natywne w main | Port do Rust   |
+| RAM / rozmiar                   | Większy        | Mniejszy       |
+| Jeden język (TS)                | Tak            | TS + Rust      |
 
 **Decyzja:** Electron na start; Tauri rozważyć, jeśli RAM/tray stanie się problemem po działającym MVP.
 
@@ -72,13 +72,13 @@ Jedna aplikacja desktopowa wyświetlająca gry z:
 
 ```typescript
 interface Game {
-  id: string              // unikalny w obrębie platformy
+  id: string // unikalny w obrębie platformy
   platform: GamePlatform
   title: string
   coverUrl?: string
   playtimeMinutes?: number
   installed: boolean
-  sourceId?: string       // np. steam appid, PSN titleId
+  sourceId?: string // np. steam appid, PSN titleId
 }
 ```
 

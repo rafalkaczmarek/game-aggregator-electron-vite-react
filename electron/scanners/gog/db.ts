@@ -70,8 +70,7 @@ function parseImages(imagesJson: string | null, mediaJson: string | null): strin
   if (imagesJson) {
     try {
       const images = JSON.parse(imagesJson) as ImagesPayload
-      const cover =
-        images.verticalCover ?? images.squareIcon ?? images.background
+      const cover = images.verticalCover ?? images.squareIcon ?? images.background
       if (cover) return cover
     } catch {
       // fall through to media payload

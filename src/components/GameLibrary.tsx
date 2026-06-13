@@ -33,9 +33,7 @@ export default function GameLibrary() {
     }
   }
 
-  const filteredGames = library
-    ? filterGamesByPlatforms(library.games, selectedPlatforms)
-    : []
+  const filteredGames = library ? filterGamesByPlatforms(library.games, selectedPlatforms) : []
   const groupedGames = sortGroupedGamesByTitle(groupGamesByTitle(filteredGames))
   const isFiltered = selectedPlatforms.length > 0
 

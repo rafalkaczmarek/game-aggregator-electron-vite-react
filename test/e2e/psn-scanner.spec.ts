@@ -1,14 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import path from 'node:path'
-import {
-  configurePsnScan,
-  expect,
-  root,
-  setGogGalaxyDb,
-  setScanAllMock,
-  test,
-} from './fixtures'
+import { configurePsnScan, expect, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
 import { psnPurchasedGamesFixture } from '../fixtures/psn'
 
 test.describe('PSN scanner', () => {
@@ -34,9 +27,7 @@ test.describe('PSN scanner', () => {
   test('psn platform scan requires NPSSO when no fixture is configured', async ({ page }) => {
     test.setTimeout(60_000)
 
-    await page.evaluate(() =>
-      window.settingsApi.update({ psnNpsso: '', psnOnlineId: '' }),
-    )
+    await page.evaluate(() => window.settingsApi.update({ psnNpsso: '', psnOnlineId: '' }))
 
     const result = await page.evaluate(() => window.gameApi.scanPlatform('psn'))
 

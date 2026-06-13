@@ -21,7 +21,10 @@ test.describe('platform filter', () => {
 
     await page.click('button:has-text("Scan libraries")')
     await expect(page.getByTestId('platform-filter')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Steam' })).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByRole('button', { name: 'Steam' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
     await expect(page.getByRole('button', { name: 'GOG' })).toHaveAttribute('aria-pressed', 'false')
 
     const grid = page.getByTestId('game-library-grid')
@@ -36,7 +39,10 @@ test.describe('platform filter', () => {
     await page.click('button:has-text("Scan libraries")')
     await page.getByRole('button', { name: 'Steam' }).click()
 
-    await expect(page.getByRole('button', { name: 'Steam' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: 'Steam' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await expect(page.getByText('(filtered)')).toBeVisible()
     await expect(page.getByText(/Last scan:.*— 1 games \(filtered\)/)).toBeVisible()
 
@@ -55,7 +61,10 @@ test.describe('platform filter', () => {
     await expect(page.getByTestId('game-library-grid').locator('li')).toHaveCount(1)
 
     await page.getByRole('button', { name: 'Epic' }).click()
-    await expect(page.getByRole('button', { name: 'Epic' })).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByRole('button', { name: 'Epic' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
     await expect(page.getByTestId('game-library-grid').locator('li')).toHaveCount(3)
     await expect(page.getByText('(filtered)')).toHaveCount(0)
   })

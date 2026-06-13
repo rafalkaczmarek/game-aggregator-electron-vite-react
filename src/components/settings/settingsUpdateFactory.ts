@@ -55,7 +55,11 @@ interface PsnUpdateInput {
   state: SettingsState | null
 }
 
-function buildPsnUpdate({ draftNpsso, draftOnlineId, state }: PsnUpdateInput): SettingsUpdateFactoryResult {
+function buildPsnUpdate({
+  draftNpsso,
+  draftOnlineId,
+  state,
+}: PsnUpdateInput): SettingsUpdateFactoryResult {
   const secret = resolveSecretField({
     draft: draftNpsso,
     field: 'psnNpsso',
@@ -105,7 +109,9 @@ const settingsUpdateBuilders: {
     }),
 }
 
-export function settingsUpdateFactory(input: SettingsUpdateFactoryInput): SettingsUpdateFactoryResult {
+export function settingsUpdateFactory(
+  input: SettingsUpdateFactoryInput,
+): SettingsUpdateFactoryResult {
   if (input.section === 'steam') {
     return settingsUpdateBuilders.steam(input)
   }

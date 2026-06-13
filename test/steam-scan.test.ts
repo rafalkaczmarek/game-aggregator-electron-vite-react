@@ -78,7 +78,9 @@ describe('scanSteam', () => {
       '76561198000000000',
       expect.any(Map),
     )
-    expect(result.games.map((game) => game.title)).toEqual([...result.games.map((game) => game.title)].sort())
+    expect(result.games.map((game) => game.title)).toEqual(
+      [...result.games.map((game) => game.title)].sort(),
+    )
   })
 
   it('records api failures without aborting scan', async () => {

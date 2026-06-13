@@ -150,10 +150,7 @@ describe('scanPsn', () => {
     const result = await scanPsn()
 
     expect(fetchAllPurchasedGames).not.toHaveBeenCalled()
-    expect(resolveAccountId).toHaveBeenCalledWith(
-      { accessToken: 'access-token' },
-      'public-player',
-    )
+    expect(resolveAccountId).toHaveBeenCalledWith({ accessToken: 'access-token' }, 'public-player')
     expect(fetchAllUserTitles).toHaveBeenCalledWith({ accessToken: 'access-token' }, 'account-123')
     expect(result.games).toEqual([
       expect.objectContaining({

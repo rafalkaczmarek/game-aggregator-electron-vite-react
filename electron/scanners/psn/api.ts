@@ -112,10 +112,7 @@ export async function fetchAllUserTitles(
 
     titles.push(...response.trophyTitles)
 
-    if (
-      response.trophyTitles.length === 0 ||
-      titles.length >= response.totalItemCount
-    ) {
+    if (response.trophyTitles.length === 0 || titles.length >= response.totalItemCount) {
       break
     }
 

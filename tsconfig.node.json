@@ -12,5 +12,12 @@
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["electron", "shared", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "package.json"]
+  "include": [
+    "electron",
+    "shared",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "package.json"
+  ]
 }

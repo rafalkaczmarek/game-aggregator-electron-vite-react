@@ -36,9 +36,7 @@ export default function PlatformFilter({ value, onChange }: PlatformFilterProps)
     }
 
     onChange(
-      [...value, platform].sort(
-        (a, b) => GAME_PLATFORMS.indexOf(a) - GAME_PLATFORMS.indexOf(b),
-      ),
+      [...value, platform].sort((a, b) => GAME_PLATFORMS.indexOf(a) - GAME_PLATFORMS.indexOf(b)),
     )
   }
 

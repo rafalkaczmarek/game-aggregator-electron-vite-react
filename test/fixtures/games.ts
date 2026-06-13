@@ -29,7 +29,8 @@ export const sampleGames: Game[] = [
 ]
 
 export function createMockLibrary(games: Game[] = sampleGames): AggregatedLibrary {
-  const byPlatform = (platform: Game['platform']) => games.filter((game) => game.platform === platform)
+  const byPlatform = (platform: Game['platform']) =>
+    games.filter((game) => game.platform === platform)
 
   return {
     scannedAt: '2026-06-12T12:00:00.000Z',

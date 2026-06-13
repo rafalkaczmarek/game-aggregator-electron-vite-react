@@ -24,7 +24,9 @@ test.describe('startup', () => {
     expect(platformRows).toHaveLength(4)
 
     for (const platform of ['steam', 'gog', 'epic', 'psn']) {
-      await expect(page.locator('[data-testid="platform-summary"] li', { hasText: platform })).toBeVisible()
+      await expect(
+        page.locator('[data-testid="platform-summary"] li', { hasText: platform }),
+      ).toBeVisible()
     }
 
     const steamRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'steam' })

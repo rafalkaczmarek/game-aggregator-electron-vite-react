@@ -11,7 +11,8 @@ vi.mock('electron', () => ({
   },
 }))
 
-const { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } = await import('../electron/main/library/store')
+const { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } =
+  await import('../electron/main/library/store')
 
 describe('library store', () => {
   beforeEach(async () => {

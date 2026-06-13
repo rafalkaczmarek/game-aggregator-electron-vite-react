@@ -70,11 +70,7 @@ export default defineConfig(({ command, mode }) => {
     ],
     server: {
       watch: {
-        ignored: [
-          '**/coverage/**',
-          '**/test-results/**',
-          '**/playwright-report/**',
-        ],
+        ignored: ['**/coverage/**', '**/test-results/**', '**/playwright-report/**'],
       },
     },
     clearScreen: false,

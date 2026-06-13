@@ -1,9 +1,6 @@
 import { defineConfig } from '@playwright/test'
 
-if (
-  process.env.E2E_COVERAGE === '1'
-  || process.env.npm_lifecycle_event === 'test:e2e:coverage'
-) {
+if (process.env.E2E_COVERAGE === '1' || process.env.npm_lifecycle_event === 'test:e2e:coverage') {
   process.env.E2E_COVERAGE = '1'
 }
 

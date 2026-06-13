@@ -9,9 +9,7 @@ const rootPrefix = rootDir.replace(/\\/g, '/')
 export const e2eCoverageEnabled = process.env.E2E_COVERAGE === '1'
 export const nodeCoverageDir = path.join(rootDir, 'coverage', 'e2e-node-v8')
 
-const excludedRelativePaths = new Set([
-  'electron/main/update.ts',
-])
+const excludedRelativePaths = new Set(['electron/main/update.ts'])
 
 function toProjectRelativePath(sourcePath: string): string | null {
   const normalized = sourcePath.replace(/\\/g, '/')
@@ -21,9 +19,9 @@ function toProjectRelativePath(sourcePath: string): string | null {
   }
 
   if (
-    normalized.startsWith('src/')
-    || normalized.startsWith('electron/')
-    || normalized.startsWith('shared/')
+    normalized.startsWith('src/') ||
+    normalized.startsWith('electron/') ||
+    normalized.startsWith('shared/')
   ) {
     return normalized
   }
@@ -46,9 +44,9 @@ function isProjectSource(sourcePath: string): boolean {
   }
 
   return (
-    relative.startsWith('src/')
-    || relative.startsWith('electron/')
-    || relative.startsWith('shared/')
+    relative.startsWith('src/') ||
+    relative.startsWith('electron/') ||
+    relative.startsWith('shared/')
   )
 }
 

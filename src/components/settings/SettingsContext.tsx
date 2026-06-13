@@ -21,9 +21,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return next
   }, [])
 
-  return (
-    <SettingsContext.Provider value={{ state, update }}>{children}</SettingsContext.Provider>
-  )
+  return <SettingsContext.Provider value={{ state, update }}>{children}</SettingsContext.Provider>
 }
 
 export function useSettingsContext() {

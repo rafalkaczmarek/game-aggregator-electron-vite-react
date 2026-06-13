@@ -50,9 +50,7 @@ function pickDisplayTitle(entries: Game[]): string {
 }
 
 function sortPlatforms(platforms: GamePlatform[]): GamePlatform[] {
-  return [...platforms].sort(
-    (a, b) => GAME_PLATFORMS.indexOf(a) - GAME_PLATFORMS.indexOf(b),
-  )
+  return [...platforms].sort((a, b) => GAME_PLATFORMS.indexOf(a) - GAME_PLATFORMS.indexOf(b))
 }
 
 export function groupGamesByTitle(games: Game[]): GroupedGame[] {
@@ -108,10 +106,7 @@ export function sortGroupedGamesByTitle(groups: GroupedGame[]): GroupedGame[] {
   )
 }
 
-export function filterGamesByPlatforms(
-  games: Game[],
-  platforms: readonly GamePlatform[],
-): Game[] {
+export function filterGamesByPlatforms(games: Game[], platforms: readonly GamePlatform[]): Game[] {
   if (platforms.length === 0) return games
   const allowed = new Set(platforms)
   return games.filter((game) => allowed.has(game.platform))

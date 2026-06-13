@@ -113,13 +113,19 @@ describe('steam acf helpers', () => {
   })
 
   it('fetchStoreAppName returns null when store api fails', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false })),
+    )
 
     await expect(fetchStoreAppName('123')).resolves.toBeNull()
   })
 
   it('reports unresolved names after failed store lookups', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false })),
+    )
 
     const games = new Map<string, import('@shared/types/game').Game>([
       [

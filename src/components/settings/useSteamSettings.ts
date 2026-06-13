@@ -39,10 +39,14 @@ export function useSteamSettings() {
       return
     }
 
-    await runUpdate(result.update, {
-      successMessage: 'Settings saved.',
-      errorMessage: 'Failed to save settings.',
-    }, true)
+    await runUpdate(
+      result.update,
+      {
+        successMessage: 'Settings saved.',
+        errorMessage: 'Failed to save settings.',
+      },
+      true,
+    )
   }
 
   const clearKey = useCallback(
