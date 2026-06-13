@@ -40,7 +40,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "electron": "^42.4.0",
     "electron-builder": "^26.15.3",
-    "jsdom": "^26.1.0",
+    "jsdom": "^29.1.1",
     "monocart-coverage-reports": "^2.12.12",
     "prettier": "^3.6.2",
     "react": "^19.2.7",
