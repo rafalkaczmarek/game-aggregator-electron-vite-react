@@ -3,11 +3,12 @@ import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
 import { groupGamesByTitle } from './lib/grouping'
-import { sortGroupedGamesByTitle } from './lib/sort'
-import type { PlayStatusFilter as PlayStatusFilterValue } from './lib/types'
+import { sortGroupedGames } from './lib/sort'
+import type { LibrarySort, PlayStatusFilter as PlayStatusFilterValue } from './lib/types'
 import GameGridView from './ui/GameGridView'
 import GameListView from './ui/GameListView'
 import PlatformFilter from './ui/PlatformFilter'
+import LibrarySortControl from './ui/LibrarySortControl'
 import PlayStatusFilter from './ui/PlayStatusFilter'
 import ViewToggle, { type LibraryViewMode } from './ui/ViewToggle'
 
@@ -17,6 +18,7 @@ export default function GameLibrary() {
   const [viewMode, setViewMode] = useState<LibraryViewMode>('grid')
   const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
   const [playStatus, setPlayStatus] = useState<PlayStatusFilterValue>('all')
+  const [librarySort, setLibrarySort] = useState<LibrarySort>('title')
 
   useEffect(() => {
     void window.gameApi.getLibrary().then((cached) => {
@@ -35,8 +37,9 @@ export default function GameLibrary() {
   }
 
   const filteredGames = library ? filterGamesByPlatforms(library.games, selectedPlatforms) : []
-  const groupedGames = sortGroupedGamesByTitle(
+  const groupedGames = sortGroupedGames(
     filterGroupedGamesByPlayStatus(groupGamesByTitle(filteredGames), playStatus),
+    librarySort,
   )
   const isFiltered = selectedPlatforms.length > 0 || playStatus !== 'all'
 
@@ -92,6 +95,7 @@ export default function GameLibrary() {
                 <div className='flex flex-wrap items-center gap-3'>
                   <PlatformFilter value={selectedPlatforms} onChange={setSelectedPlatforms} />
                   <PlayStatusFilter value={playStatus} onChange={setPlayStatus} />
+                  <LibrarySortControl value={librarySort} onChange={setLibrarySort} />
                   <ViewToggle value={viewMode} onChange={setViewMode} />
                 </div>
               </div>

@@ -8,3 +8,5 @@ export interface GroupedGame {
 }
 
 export type PlayStatusFilter = 'all' | 'played' | 'unplayed'
+
+export type LibrarySort = 'title' | 'playtime-desc' | 'playtime-asc'

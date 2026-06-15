@@ -11,6 +11,7 @@ import {
   normalizeGameTitle,
   normalizeTitleCharacters,
   sortGamesByTitle,
+  sortGroupedGames,
   sortGroupedGamesByTitle,
 } from '@src/components/game-library/lib/format'
 import type { Game } from '@shared/types/game'
@@ -149,6 +150,70 @@ describe('game library format helpers', () => {
         'Cyberpunk 2077',
         'Alan Wake',
       ])
+    })
+  })
+
+  describe('sortGroupedGames', () => {
+    const playtimeGames: Game[] = [
+      {
+        id: 'steam-dota',
+        platform: 'steam',
+        title: 'Dota 2',
+        installed: true,
+        playtimeMinutes: 5000,
+      },
+      {
+        id: 'gog-plague',
+        platform: 'gog',
+        title: 'A Plague Tale: Innocence',
+        installed: false,
+        playtimeMinutes: 120,
+      },
+      {
+        id: 'epic-plague',
+        platform: 'epic',
+        title: 'A Plague Tale: Innocence',
+        installed: true,
+        playtimeMinutes: 30,
+      },
+      {
+        id: 'steam-cyber',
+        platform: 'steam',
+        title: 'Cyberpunk 2077',
+        installed: false,
+      },
+    ]
+
+    it('sorts grouped games by total playtime descending', () => {
+      const grouped = sortGroupedGames(groupGamesByTitle(playtimeGames), 'playtime-desc')
+
+      expect(grouped.map((game) => game.title)).toEqual([
+        'Dota 2',
+        'A Plague Tale: Innocence',
+        'Cyberpunk 2077',
+      ])
+    })
+
+    it('sorts grouped games by total playtime ascending', () => {
+      const grouped = sortGroupedGames(groupGamesByTitle(playtimeGames), 'playtime-asc')
+
+      expect(grouped.map((game) => game.title)).toEqual([
+        'Cyberpunk 2077',
+        'A Plague Tale: Innocence',
+        'Dota 2',
+      ])
+    })
+
+    it('falls back to title when playtime is equal', () => {
+      const grouped = sortGroupedGames(
+        groupGamesByTitle([
+          { id: 'gog-z', platform: 'gog', title: 'Zelda', installed: false, playtimeMinutes: 60 },
+          { id: 'gog-a', platform: 'gog', title: 'Alan Wake', installed: false, playtimeMinutes: 60 },
+        ]),
+        'playtime-desc',
+      )
+
+      expect(grouped.map((game) => game.title)).toEqual(['Alan Wake', 'Zelda'])
     })
   })
 

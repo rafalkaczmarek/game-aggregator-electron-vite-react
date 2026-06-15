@@ -8,6 +8,6 @@ export {
   isGroupedGameInstalled,
   isGroupedGamePlayed,
 } from './grouping'
-export { sortGamesByTitle, sortGroupedGamesByTitle } from './sort'
+export { sortGamesByTitle, sortGroupedGames, sortGroupedGamesByTitle } from './sort'
 export { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './filters'
-export type { GroupedGame, PlayStatusFilter } from './types'
+export type { GroupedGame, LibrarySort, PlayStatusFilter } from './types'

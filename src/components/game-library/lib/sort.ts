@@ -1,14 +1,39 @@
 import type { Game } from '@shared/types/game'
-import type { GroupedGame } from './types'
+import { getGroupedGamePlaytime } from './grouping'
+import type { GroupedGame, LibrarySort } from './types'
+
+function compareTitles(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { sensitivity: 'base' })
+}
+
+function getGroupPlaytimeMinutes(group: GroupedGame): number {
+  return getGroupedGamePlaytime(group) ?? 0
+}
 
 export function sortGamesByTitle(games: Game[]): Game[] {
-  return [...games].sort((a, b) =>
-    a.title.trim().localeCompare(b.title.trim(), undefined, { sensitivity: 'base' }),
-  )
+  return [...games].sort((a, b) => compareTitles(a.title.trim(), b.title.trim()))
 }
 
 export function sortGroupedGamesByTitle(groups: GroupedGame[]): GroupedGame[] {
-  return [...groups].sort((a, b) =>
-    a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }),
-  )
+  return [...groups].sort((a, b) => compareTitles(a.title, b.title))
+}
+
+export function sortGroupedGames(groups: GroupedGame[], sort: LibrarySort): GroupedGame[] {
+  const sorted = [...groups]
+
+  if (sort === 'title') {
+    return sortGroupedGamesByTitle(sorted)
+  }
+
+  if (sort === 'playtime-desc') {
+    return sorted.sort((a, b) => {
+      const diff = getGroupPlaytimeMinutes(b) - getGroupPlaytimeMinutes(a)
+      return diff !== 0 ? diff : compareTitles(a.title, b.title)
+    })
+  }
+
+  return sorted.sort((a, b) => {
+    const diff = getGroupPlaytimeMinutes(a) - getGroupPlaytimeMinutes(b)
+    return diff !== 0 ? diff : compareTitles(a.title, b.title)
+  })
 }
