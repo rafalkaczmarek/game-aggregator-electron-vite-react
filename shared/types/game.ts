@@ -30,4 +30,5 @@ export interface GameApi {
   getLibrary: () => Promise<AggregatedLibrary | null>
   scanAll: () => Promise<AggregatedLibrary>
   scanPlatform: (platform: GamePlatform) => Promise<ScanResult>
+  getRecommendations: () => Promise<import('./recommendations').RecommendationsResult>
 }

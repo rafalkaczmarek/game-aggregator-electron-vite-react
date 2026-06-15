@@ -13,6 +13,8 @@ const setE2eGalaxyDbPath = vi.fn<(dbPath: string | null) => void>()
 const setE2ePsnFixture = vi.fn<(fixture: unknown) => void>()
 const getSettingsState = vi.fn<() => Promise<unknown>>()
 const updateSteamApiKey = vi.fn<(value: string | undefined) => Promise<void>>()
+const updateGithubPat = vi.fn<(value: string | undefined) => Promise<void>>()
+const getGithubPat = vi.fn<() => Promise<string | undefined>>()
 const updatePsnNpsso = vi.fn<(value: string | undefined) => Promise<void>>()
 const updatePsnOnlineId = vi.fn<(value: string | undefined) => Promise<void>>()
 
@@ -46,6 +48,8 @@ vi.mock('../electron/scanners/psn/e2e', () => ({
 vi.mock('../electron/main/settings/store', () => ({
   getSettingsState,
   updateSteamApiKey,
+  updateGithubPat,
+  getGithubPat,
   updatePsnNpsso,
   updatePsnOnlineId,
 }))
@@ -65,6 +69,8 @@ describe('ipc handlers', () => {
     setE2ePsnFixture.mockReset()
     getSettingsState.mockReset()
     updateSteamApiKey.mockReset()
+    updateGithubPat.mockReset()
+    getGithubPat.mockReset()
     updatePsnNpsso.mockReset()
     updatePsnOnlineId.mockReset()
 
@@ -101,10 +107,15 @@ describe('ipc handlers', () => {
   })
 
   it('returns settings state', async () => {
-    getSettingsState.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
+    getSettingsState.mockResolvedValue({
+      steamApiKeySet: false,
+      githubPatSet: false,
+      psnNpssoSet: false,
+    })
 
     await expect(handlers.get('settings:get')!()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: false,
     })
   })
@@ -112,6 +123,7 @@ describe('ipc handlers', () => {
   it('applies settings updates and returns fresh state', async () => {
     getSettingsState.mockResolvedValue({
       steamApiKeySet: true,
+      githubPatSet: true,
       psnNpssoSet: true,
       psnOnlineId: 'player',
     })
@@ -119,16 +131,19 @@ describe('ipc handlers', () => {
     await expect(
       handlers.get('settings:update')!(null, {
         steamApiKey: 'key',
+        githubPat: 'ghp_test',
         psnNpsso: 'npsso',
         psnOnlineId: 'player',
       }),
     ).resolves.toEqual({
       steamApiKeySet: true,
+      githubPatSet: true,
       psnNpssoSet: true,
       psnOnlineId: 'player',
     })
 
     expect(updateSteamApiKey).toHaveBeenCalledWith('key')
+    expect(updateGithubPat).toHaveBeenCalledWith('ghp_test')
     expect(updatePsnNpsso).toHaveBeenCalledWith('npsso')
     expect(updatePsnOnlineId).toHaveBeenCalledWith('player')
   })

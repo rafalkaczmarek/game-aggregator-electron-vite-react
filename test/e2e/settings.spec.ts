@@ -5,7 +5,7 @@ import { expect, test } from './fixtures'
 test.describe('settings', () => {
   test.afterEach(async ({ page }) => {
     await page.evaluate(() =>
-      window.settingsApi.update({ steamApiKey: '', psnNpsso: '', psnOnlineId: '' }),
+      window.settingsApi.update({ steamApiKey: '', githubPat: '', psnNpsso: '', psnOnlineId: '' }),
     )
   })
 
@@ -22,7 +22,7 @@ test.describe('settings', () => {
 
   test('saving empty key without configured key shows message', async ({ page }) => {
     await page.evaluate(() =>
-      window.settingsApi.update({ steamApiKey: '', psnNpsso: '', psnOnlineId: '' }),
+      window.settingsApi.update({ steamApiKey: '', githubPat: '', psnNpsso: '', psnOnlineId: '' }),
     )
     await page.reload()
     await page.waitForSelector('#steam-api-key')

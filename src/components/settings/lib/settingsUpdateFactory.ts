@@ -4,7 +4,7 @@ export type SettingsUpdateFactoryResult =
   | { kind: 'update'; update: SettingsUpdate }
   | { kind: 'message'; message: string }
 
-type SecretFieldKey = 'steamApiKey' | 'psnNpsso'
+type SecretFieldKey = 'steamApiKey' | 'githubPat' | 'psnNpsso'
 
 interface SecretFieldRule {
   draft: string
@@ -49,6 +49,24 @@ function buildSteamUpdate(draftKey: string): SettingsUpdateFactoryResult {
   return { kind: 'update', update: { steamApiKey: secret.value } }
 }
 
+function buildGitHubUpdate(draftPat: string): SettingsUpdateFactoryResult {
+  const secret = resolveSecretField({
+    draft: draftPat,
+    field: 'githubPat',
+    emptyErrorMessage: 'Token GitHub nie może być pusty. Użyj „Usuń token”, aby go skasować.',
+  })
+
+  if (secret.kind === 'error') {
+    return { kind: 'message', message: secret.message }
+  }
+
+  if (secret.kind === 'skip') {
+    return { kind: 'message', message: 'Brak zmian do zapisania.' }
+  }
+
+  return { kind: 'update', update: { githubPat: secret.value } }
+}
+
 interface PsnUpdateInput {
   draftNpsso: string
   draftOnlineId: string
@@ -89,10 +107,11 @@ function buildPsnUpdate({
   return { kind: 'update', update }
 }
 
-export type SettingsUpdateSection = 'steam' | 'psn'
+export type SettingsUpdateSection = 'steam' | 'github' | 'psn'
 
 export type SettingsUpdateFactoryInput =
   | { section: 'steam'; draftKey: string }
+  | { section: 'github'; draftPat: string }
   | { section: 'psn'; draftNpsso: string; draftOnlineId: string; state: SettingsState | null }
 
 const settingsUpdateBuilders: {
@@ -101,6 +120,7 @@ const settingsUpdateBuilders: {
   ) => SettingsUpdateFactoryResult
 } = {
   steam: (input) => buildSteamUpdate(input.draftKey),
+  github: (input) => buildGitHubUpdate(input.draftPat),
   psn: (input) =>
     buildPsnUpdate({
       draftNpsso: input.draftNpsso,
@@ -114,6 +134,9 @@ export function settingsUpdateFactory(
 ): SettingsUpdateFactoryResult {
   if (input.section === 'steam') {
     return settingsUpdateBuilders.steam(input)
+  }
+  if (input.section === 'github') {
+    return settingsUpdateBuilders.github(input)
   }
   return settingsUpdateBuilders.psn(input)
 }

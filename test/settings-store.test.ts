@@ -41,6 +41,7 @@ describe('settings store', () => {
     await expect(getSteamApiKey()).resolves.toBe('env-key')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: true,
+      githubPatSet: false,
       psnNpssoSet: false,
     })
   })
@@ -52,6 +53,7 @@ describe('settings store', () => {
     await expect(getSteamApiKey()).resolves.toBe('stored-key')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: true,
+      githubPatSet: false,
       psnNpssoSet: false,
     })
 
@@ -67,6 +69,7 @@ describe('settings store', () => {
     await expect(getSteamApiKey()).resolves.toBeUndefined()
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: false,
     })
   })
@@ -113,6 +116,45 @@ describe('settings store', () => {
     await expect(getSteamApiKey()).resolves.toBeUndefined()
   })
 
+  it('persists and reads github pat from user data', async () => {
+    const { updateGithubPat, getGithubPat, getSettingsState } = await loadStore()
+
+    await updateGithubPat('  github-pat  ')
+    await expect(getGithubPat()).resolves.toBe('github-pat')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      githubPatSet: true,
+      psnNpssoSet: false,
+    })
+
+    const raw = await readFile(path.join(tmpDir, 'settings.json'), 'utf8')
+    expect(JSON.parse(raw)).toHaveProperty('githubPatEnc')
+  })
+
+  it('returns github pat from environment when set', async () => {
+    vi.stubEnv('GITHUB_MODELS_PAT', ' env-github ')
+    const { getGithubPat, getSettingsState } = await loadStore()
+
+    await expect(getGithubPat()).resolves.toBe('env-github')
+    await expect(getSettingsState()).resolves.toEqual({
+      steamApiKeySet: false,
+      githubPatSet: true,
+      psnNpssoSet: false,
+    })
+  })
+
+  it('reads legacy gemini key storage as github pat', async () => {
+    const encoded = Buffer.from('legacy-key', 'utf8').toString('base64')
+    await writeFile(
+      path.join(tmpDir, 'settings.json'),
+      `${JSON.stringify({ openAiApiKeyEnc: encoded })}\n`,
+      'utf8',
+    )
+
+    const { getGithubPat } = await loadStore()
+    await expect(getGithubPat()).resolves.toBe('legacy-key')
+  })
+
   it('persists and reads psn npsso from user data', async () => {
     const { updatePsnNpsso, getPsnNpsso, getSettingsState } = await loadStore()
 
@@ -120,6 +162,7 @@ describe('settings store', () => {
     await expect(getPsnNpsso()).resolves.toBe('stored-npsso')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: true,
     })
 
@@ -134,6 +177,7 @@ describe('settings store', () => {
     await expect(getPsnOnlineId()).resolves.toBe('player-one')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: false,
       psnOnlineId: 'player-one',
     })
@@ -146,6 +190,7 @@ describe('settings store', () => {
     await expect(getPsnNpsso()).resolves.toBe('env-npsso')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: true,
     })
   })
@@ -157,6 +202,7 @@ describe('settings store', () => {
     await expect(getPsnOnlineId()).resolves.toBe('env-player')
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: false,
       psnOnlineId: 'env-player',
     })
@@ -175,6 +221,7 @@ describe('settings store', () => {
     await expect(getPsnOnlineId()).resolves.toBeUndefined()
     await expect(getSettingsState()).resolves.toEqual({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: false,
     })
   })

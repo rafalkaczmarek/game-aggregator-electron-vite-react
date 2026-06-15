@@ -12,6 +12,7 @@ import {
 } from '@playwright/test'
 import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
+import type { RecommendationsResult } from '@shared/types/recommendations'
 import type { PsnE2eFixture } from '../../electron/scanners/psn/e2e'
 import {
   collectRendererCoverage,
@@ -135,6 +136,18 @@ export async function setGogGalaxyDb(page: Page, dbPath: string | null) {
 
 export async function setPsnFixture(page: Page, fixture: PsnE2eFixture | null) {
   await page.evaluate((target) => window.__e2e.setPsnFixture(target), fixture)
+}
+
+export async function setRecommendationsMock(page: Page, result: RecommendationsResult | null) {
+  await page.evaluate((data) => {
+    window.__e2e.setRecommendationsMock(data)
+  }, result)
+}
+
+export async function configureGithubPat(page: Page, token = 'e2e-github-pat') {
+  await page.evaluate(async (value) => {
+    await window.settingsApi.update({ githubPat: value })
+  }, token)
 }
 
 export async function configurePsnScan(page: Page, fixture: PsnE2eFixture | null) {

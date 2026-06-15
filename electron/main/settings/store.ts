@@ -4,11 +4,15 @@ import path from 'node:path'
 
 interface StoredSettings {
   steamApiKeyEnc?: string
+  openAiApiKeyEnc?: string
+  geminiApiKeyEnc?: string
+  githubPatEnc?: string
   psnNpssoEnc?: string
   psnOnlineId?: string
 }
 
 let cachedSteamApiKey: string | undefined | null = null
+let cachedGithubPat: string | undefined | null = null
 let cachedPsnNpsso: string | undefined | null = null
 let cachedPsnOnlineId: string | undefined | null = null
 
@@ -68,6 +72,34 @@ export async function getSteamApiKey(): Promise<string | undefined> {
   return cachedSteamApiKey
 }
 
+export async function getGithubPat(): Promise<string | undefined> {
+  const fromEnv =
+    process.env.GITHUB_MODELS_PAT?.trim() ||
+    process.env.GITHUB_TOKEN?.trim() ||
+    process.env.GH_TOKEN?.trim()
+  if (fromEnv) return fromEnv
+
+  if (cachedGithubPat !== null) {
+    return cachedGithubPat || undefined
+  }
+
+  const stored = await readStoredSettings()
+  const encrypted =
+    stored.githubPatEnc ?? stored.geminiApiKeyEnc ?? stored.openAiApiKeyEnc
+  if (!encrypted) {
+    cachedGithubPat = undefined
+    return undefined
+  }
+
+  try {
+    cachedGithubPat = decryptSecret(encrypted).trim() || undefined
+  } catch {
+    cachedGithubPat = undefined
+  }
+
+  return cachedGithubPat
+}
+
 export async function getPsnNpsso(): Promise<string | undefined> {
   const fromEnv = process.env.PSN_NPSSO?.trim()
   if (fromEnv) return fromEnv
@@ -106,17 +138,20 @@ export async function getPsnOnlineId(): Promise<string | undefined> {
 
 export async function getSettingsState(): Promise<{
   steamApiKeySet: boolean
+  githubPatSet: boolean
   psnNpssoSet: boolean
   psnOnlineId?: string
 }> {
-  const [key, npsso, onlineId] = await Promise.all([
+  const [key, githubPat, npsso, onlineId] = await Promise.all([
     getSteamApiKey(),
+    getGithubPat(),
     getPsnNpsso(),
     getPsnOnlineId(),
   ])
 
   return {
     steamApiKeySet: Boolean(key),
+    githubPatSet: Boolean(githubPat),
     psnNpssoSet: Boolean(npsso),
     psnOnlineId: onlineId,
   }
@@ -132,6 +167,25 @@ export async function updateSteamApiKey(value: string | undefined): Promise<void
   } else {
     stored.steamApiKeyEnc = encryptSecret(trimmed)
     cachedSteamApiKey = trimmed
+  }
+
+  await writeStoredSettings(stored)
+}
+
+export async function updateGithubPat(value: string | undefined): Promise<void> {
+  const trimmed = value?.trim() ?? ''
+  const stored = await readStoredSettings()
+
+  if (!trimmed) {
+    delete stored.githubPatEnc
+    delete stored.geminiApiKeyEnc
+    delete stored.openAiApiKeyEnc
+    cachedGithubPat = undefined
+  } else {
+    stored.githubPatEnc = encryptSecret(trimmed)
+    delete stored.geminiApiKeyEnc
+    delete stored.openAiApiKeyEnc
+    cachedGithubPat = trimmed
   }
 
   await writeStoredSettings(stored)

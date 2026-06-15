@@ -1,11 +1,13 @@
 export interface SettingsState {
   steamApiKeySet: boolean
+  githubPatSet: boolean
   psnNpssoSet: boolean
   psnOnlineId?: string
 }
 
 export interface SettingsUpdate {
   steamApiKey?: string
+  githubPat?: string
   psnNpsso?: string
   psnOnlineId?: string
 }

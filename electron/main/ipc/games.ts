@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron'
 import type { AggregatedLibrary, GamePlatform } from '../../../shared/types/game'
 import { GAME_PLATFORMS } from '../../../shared/types/game'
+import { getRecommendations } from '../../recommendations'
+import { getGithubPat } from '../settings/store'
 import { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } from '../library/store'
 import { scanAllGames, scanPlatform } from '../../scanners'
 import { setE2eGalaxyDbPath } from '../../scanners/gog/paths'
@@ -33,5 +35,19 @@ export function registerGameIpcHandlers(): void {
       throw new Error(`Unknown platform: ${platform}`)
     }
     return scanPlatform(platform)
+  })
+
+  ipcMain.handle('games:get-recommendations', async () => {
+    const library = await readCachedLibrary()
+    if (!library) {
+      return {
+        owned: [],
+        discover: [],
+        errors: ['Brak zeskanowanej biblioteki — najpierw uruchom skanowanie.'],
+        basedOnPlayedCount: 0,
+      }
+    }
+    const pat = await getGithubPat()
+    return getRecommendations(library, pat)
   })
 }

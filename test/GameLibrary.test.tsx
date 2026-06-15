@@ -17,6 +17,12 @@ describe('GameLibrary', () => {
       getLibrary,
       scanAll,
       scanPlatform: vi.fn(),
+      getRecommendations: vi.fn<GameApi['getRecommendations']>().mockResolvedValue({
+        owned: [],
+        discover: [],
+        errors: [],
+        basedOnPlayedCount: 0,
+      }),
     }
   })
 

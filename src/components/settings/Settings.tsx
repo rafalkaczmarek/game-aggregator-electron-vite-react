@@ -1,4 +1,5 @@
 import { SettingsProvider } from './context/SettingsContext'
+import GitHubModelsSettings from './ui/GitHubModelsSettings'
 import PsnSettings from './ui/PsnSettings'
 import SteamSettings from './ui/SteamSettings'
 
@@ -10,13 +11,14 @@ export default function Settings() {
           <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Settings</div>
           <p className='text-sm text-slate-600'>
             Secrets are stored in the main process only. Steam Web API enriches your library with
-            titles, playtime, and covers. PSN uses your NPSSO token to fetch trophy titles from
-            PlayStation Network.
+            titles, playtime, and covers. GitHub Models (gpt-4.1-mini) powers personalized game
+            recommendations with a free prototyping tier. PSN uses your NPSSO token to fetch trophy trophy titles from PlayStation Network.
           </p>
         </div>
 
         <div className='mt-6 space-y-8'>
           <SteamSettings />
+          <GitHubModelsSettings />
           <PsnSettings />
         </div>
       </section>

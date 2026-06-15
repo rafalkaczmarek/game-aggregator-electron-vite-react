@@ -10,10 +10,17 @@ describe('App', () => {
       getLibrary: vi.fn<GameApi['getLibrary']>().mockResolvedValue(null),
       scanAll: vi.fn<GameApi['scanAll']>(),
       scanPlatform: vi.fn(),
+      getRecommendations: vi.fn<GameApi['getRecommendations']>().mockResolvedValue({
+        owned: [],
+        discover: [],
+        errors: [],
+        basedOnPlayedCount: 0,
+      }),
     }
     window.settingsApi = {
       get: vi.fn<SettingsApi['get']>().mockResolvedValue({
         steamApiKeySet: false,
+        githubPatSet: false,
         psnNpssoSet: false,
       }),
       update: vi.fn<SettingsApi['update']>(),
@@ -25,6 +32,7 @@ describe('App', () => {
 
     expect(screen.getByText('Wszystkie gry w jednym miejscu.')).toBeInTheDocument()
     expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Pokaż rekomendacje' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
   })
 })

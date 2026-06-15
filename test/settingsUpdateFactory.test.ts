@@ -25,6 +25,22 @@ describe('settingsUpdateFactory', () => {
     })
   })
 
+  describe('github', () => {
+    it('returns update for trimmed pat', () => {
+      expect(settingsUpdateFactory({ section: 'github', draftPat: '  ghp_token  ' })).toEqual({
+        kind: 'update',
+        update: { githubPat: 'ghp_token' },
+      })
+    })
+
+    it('rejects whitespace-only pat', () => {
+      expect(settingsUpdateFactory({ section: 'github', draftPat: '   ' })).toEqual({
+        kind: 'message',
+        message: 'Token GitHub nie może być pusty. Użyj „Usuń token”, aby go skasować.',
+      })
+    })
+  })
+
   describe('psn', () => {
     it('returns update for npsso and online id changes', () => {
       expect(
@@ -32,7 +48,7 @@ describe('settingsUpdateFactory', () => {
           section: 'psn',
           draftNpsso: ' token ',
           draftOnlineId: ' player ',
-          state: { steamApiKeySet: false, psnNpssoSet: false },
+          state: { steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false },
         }),
       ).toEqual({
         kind: 'update',
@@ -46,7 +62,7 @@ describe('settingsUpdateFactory', () => {
           section: 'psn',
           draftNpsso: '',
           draftOnlineId: 'player',
-          state: { steamApiKeySet: false, psnNpssoSet: false, psnOnlineId: '' },
+          state: { steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false, psnOnlineId: '' },
         }),
       ).toEqual({
         kind: 'update',
@@ -74,7 +90,7 @@ describe('settingsUpdateFactory', () => {
           section: 'psn',
           draftNpsso: '',
           draftOnlineId: 'player',
-          state: { steamApiKeySet: false, psnNpssoSet: true, psnOnlineId: 'player' },
+          state: { steamApiKeySet: false, githubPatSet: false, psnNpssoSet: true, psnOnlineId: 'player' },
         }),
       ).toEqual({
         kind: 'message',

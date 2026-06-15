@@ -1,15 +1,19 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
+import type { RecommendationsResult } from '../../shared/types/recommendations'
 import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/types/settings'
 import type { PsnE2eFixture } from '../scanners/psn/e2e'
 
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
+let getRecommendationsImpl: () => Promise<RecommendationsResult> = () =>
+  ipcRenderer.invoke('games:get-recommendations')
 
 const gameApi = {
   getLibrary: (): Promise<AggregatedLibrary | null> => ipcRenderer.invoke('games:get-library'),
   scanAll: (): Promise<AggregatedLibrary> => scanAllImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
+  getRecommendations: (): Promise<RecommendationsResult> => getRecommendationsImpl(),
 }
 
 const settingsApi: SettingsApi = {
@@ -37,6 +41,11 @@ contextBridge.exposeInMainWorld('__e2e', {
   },
   setPsnFixture(fixture: PsnE2eFixture | null) {
     return ipcRenderer.invoke('e2e:set-psn-fixture', fixture)
+  },
+  setRecommendationsMock(result: RecommendationsResult | null) {
+    getRecommendationsImpl = result
+      ? () => Promise.resolve(result)
+      : () => ipcRenderer.invoke('games:get-recommendations')
   },
 })
 

@@ -11,12 +11,12 @@ describe('Settings', () => {
   beforeEach(() => {
     get.mockReset()
     update.mockReset()
-    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
+    get.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
     window.settingsApi = { get, update }
   })
 
   it('loads current settings state on mount', async () => {
-    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
+    get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
 
     render(<Settings />)
 
@@ -42,7 +42,7 @@ describe('Settings', () => {
 
   it('saves trimmed api key', async () => {
     const user = userEvent.setup()
-    update.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
+    update.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
 
     render(<Settings />)
     await waitFor(() => {
@@ -77,8 +77,8 @@ describe('Settings', () => {
 
   it('clears configured api key', async () => {
     const user = userEvent.setup()
-    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
-    update.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
+    get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
+    update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
 
     render(<Settings />)
     await waitFor(() => {
@@ -95,7 +95,7 @@ describe('Settings', () => {
 
   it('shows clear error message when update fails', async () => {
     const user = userEvent.setup()
-    get.mockResolvedValue({ steamApiKeySet: true, psnNpssoSet: false })
+    get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
     update.mockRejectedValue(new Error('clear failed'))
 
     render(<Settings />)
@@ -111,7 +111,12 @@ describe('Settings', () => {
   })
 
   it('loads psn online id from settings state', async () => {
-    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: true, psnOnlineId: 'player-one' })
+    get.mockResolvedValue({
+      steamApiKeySet: false,
+      githubPatSet: false,
+      psnNpssoSet: true,
+      psnOnlineId: 'player-one',
+    })
 
     render(<Settings />)
 
@@ -125,6 +130,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockResolvedValue({
       steamApiKeySet: false,
+      githubPatSet: false,
       psnNpssoSet: true,
       psnOnlineId: 'player-one',
     })
@@ -166,8 +172,8 @@ describe('Settings', () => {
 
   it('clears configured psn npsso token', async () => {
     const user = userEvent.setup()
-    get.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: true })
-    update.mockResolvedValue({ steamApiKeySet: false, psnNpssoSet: false })
+    get.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: true })
+    update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
 
     render(<Settings />)
     await waitFor(() => {
@@ -196,6 +202,59 @@ describe('Settings', () => {
 
     await waitFor(() => {
       expect(screen.getByText('psn save failed')).toBeInTheDocument()
+    })
+  })
+
+  it('saves trimmed github pat', async () => {
+    const user = userEvent.setup()
+    update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: true, psnNpssoSet: false })
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('GitHub Personal Access Token')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText('GitHub Personal Access Token'), '  ghp_test  ')
+    await user.click(screen.getByRole('button', { name: 'Zapisz token GitHub' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Token GitHub zapisany.')).toBeInTheDocument()
+    })
+    expect(update).toHaveBeenCalledWith({ githubPat: 'ghp_test' })
+  })
+
+  it('clears configured github pat', async () => {
+    const user = userEvent.setup()
+    get.mockResolvedValue({ steamApiKeySet: false, githubPatSet: true, psnNpssoSet: false })
+    update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Usuń token' })).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Usuń token' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Token GitHub usunięty.')).toBeInTheDocument()
+    })
+    expect(update).toHaveBeenCalledWith({ githubPat: '' })
+  })
+
+  it('shows github save error message when update fails', async () => {
+    const user = userEvent.setup()
+    update.mockRejectedValue(new Error('github save failed'))
+
+    render(<Settings />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('GitHub Personal Access Token')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText('GitHub Personal Access Token'), 'bad-token')
+    await user.click(screen.getByRole('button', { name: 'Zapisz token GitHub' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('github save failed')).toBeInTheDocument()
     })
   })
 })

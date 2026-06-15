@@ -1,4 +1,5 @@
 import GameLibrary from '@src/components/game-library/GameLibrary'
+import Recommendations from '@src/components/recommendations/Recommendations'
 import Settings from '@src/components/settings/Settings'
 
 function App() {
@@ -33,6 +34,8 @@ function App() {
         </section>
 
         <Settings />
+
+        <Recommendations />
 
         <GameLibrary />
       </div>

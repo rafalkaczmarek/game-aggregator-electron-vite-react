@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import type { SettingsUpdate } from '../../../shared/types/settings'
 import {
   getSettingsState,
+  updateGithubPat,
   updatePsnNpsso,
   updatePsnOnlineId,
   updateSteamApiKey,
@@ -13,6 +14,9 @@ export function registerSettingsIpcHandlers(): void {
   ipcMain.handle('settings:update', async (_event, update: SettingsUpdate) => {
     if (update.steamApiKey !== undefined) {
       await updateSteamApiKey(update.steamApiKey)
+    }
+    if (update.githubPat !== undefined) {
+      await updateGithubPat(update.githubPat)
     }
     if (update.psnNpsso !== undefined) {
       await updatePsnNpsso(update.psnNpsso)

@@ -14,6 +14,9 @@ declare global {
       setPsnFixture: (
         fixture: import('../../electron/scanners/psn/e2e').PsnE2eFixture | null,
       ) => Promise<void>
+      setRecommendationsMock: (
+        result: import('../../shared/types/recommendations').RecommendationsResult | null,
+      ) => void
     }
   }
 }
