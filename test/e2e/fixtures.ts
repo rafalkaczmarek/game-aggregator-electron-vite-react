@@ -25,6 +25,20 @@ import {
 
 export { expect }
 
+export type AppPage = 'home' | 'library' | 'recommendations' | 'settings'
+
+const APP_PAGE_SELECTORS: Record<AppPage, string> = {
+  home: '[data-testid="home-page"]',
+  library: 'button:has-text("Scan libraries")',
+  recommendations: '[data-testid="recommendations-section"]',
+  settings: '#steam-api-key',
+}
+
+export async function goToAppPage(page: Page, target: AppPage) {
+  await page.getByTestId(`nav-${target}`).click()
+  await page.waitForSelector(APP_PAGE_SELECTORS[target])
+}
+
 export const root = path.resolve(import.meta.dirname, '..', '..')
 const e2eUserData = path.join(root, 'test', 'e2e-user-data')
 

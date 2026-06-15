@@ -5,6 +5,7 @@ import {
   clearLibraryCache,
   configureGithubPat,
   expect,
+  goToAppPage,
   setRecommendationsMock,
   test,
   writeLibraryCache,
@@ -38,7 +39,7 @@ test.describe('recommendations', () => {
       window.settingsApi.update({ steamApiKey: '', githubPat: '', psnNpsso: '', psnOnlineId: '' }),
     )
     await page.reload()
-    await page.waitForSelector('[data-testid="recommendations-section"]')
+    await goToAppPage(page, 'recommendations')
   })
 
   test.afterEach(async ({ page }) => {
@@ -53,18 +54,18 @@ test.describe('recommendations', () => {
     await expect(page.getByText(/Dodaj token GitHub PAT/i)).toBeVisible()
   })
 
-  test('shows recommendations section and github models settings', async ({ page }) => {
-    await expect(page.getByTestId('recommendations-section')).toBeVisible()
-    await expect(page.getByText('Rekomendacje', { exact: true })).toBeVisible()
-    await expect(page.getByLabel('GitHub Personal Access Token')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'gpt-4.1-mini' })).toBeVisible()
+  test('shows recommendations section', async ({ page }) => {
+    const section = page.getByTestId('recommendations-section')
+    await expect(section).toBeVisible()
+    await expect(section.getByText('Rekomendacje', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('generate-recommendations')).toBeVisible()
   })
 
   test('generates and displays mocked recommendations', async ({ page }) => {
     await writeLibraryCache(page, createMockLibrary())
     await configureGithubPat(page)
     await page.reload()
-    await page.waitForSelector('[data-testid="generate-recommendations"]')
+    await goToAppPage(page, 'recommendations')
     await setRecommendationsMock(page, mockRecommendations)
 
     await expect(page.getByTestId('generate-recommendations')).toBeEnabled()
@@ -83,7 +84,7 @@ test.describe('recommendations', () => {
     await writeLibraryCache(page, createMockLibrary())
     await configureGithubPat(page)
     await page.reload()
-    await page.waitForSelector('[data-testid="generate-recommendations"]')
+    await goToAppPage(page, 'recommendations')
     await setRecommendationsMock(page, {
       owned: [],
       discover: [],
@@ -98,12 +99,14 @@ test.describe('recommendations', () => {
   test('shows message when library cache is missing', async ({ page }) => {
     await configureGithubPat(page)
     await page.reload()
+    await goToAppPage(page, 'recommendations')
     await page.getByTestId('generate-recommendations').click()
 
     await expect(page.getByText(/Brak zeskanowanej biblioteki/i)).toBeVisible()
   })
 
   test('saves github pat and enables recommendations button', async ({ page }) => {
+    await goToAppPage(page, 'settings')
     await page.fill('#github-pat', 'e2e-github-pat-token')
     await page.getByRole('button', { name: 'Zapisz token GitHub' }).click()
 
@@ -111,7 +114,7 @@ test.describe('recommendations', () => {
     await expect(page.getByText('Token GitHub skonfigurowany')).toBeVisible()
 
     await page.reload()
-    await page.waitForSelector('[data-testid="recommendations-section"]')
+    await goToAppPage(page, 'recommendations')
     await expect(page.getByTestId('generate-recommendations')).toBeEnabled()
     await expect(page.getByText(/Dodaj token GitHub PAT/i)).toHaveCount(0)
 

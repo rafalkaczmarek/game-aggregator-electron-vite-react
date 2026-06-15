@@ -2,7 +2,7 @@
 
 import type { Page } from '@playwright/test'
 import { createDuplicateTitleLibrary, createMockLibrary } from '../fixtures/games'
-import { expect, setScanAllMock, test } from './fixtures'
+import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 async function getVisibleGameTitles(page: Page, view: 'grid' | 'list' = 'grid') {
   const testId = view === 'grid' ? 'game-library-grid' : 'game-library-list'
@@ -14,7 +14,7 @@ test.describe('library sort', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
     await setScanAllMock(page, null)
   })
 

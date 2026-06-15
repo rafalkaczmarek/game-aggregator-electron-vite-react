@@ -25,7 +25,8 @@
     "@node-steam/vdf": "^2.2.0",
     "@tanstack/react-virtual": "^3.14.2",
     "electron-updater": "^6.8.9",
-    "psn-api": "^2.18.0"
+    "psn-api": "^2.18.0",
+    "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

@@ -1,14 +1,14 @@
 /// <reference path="./global.d.ts" />
 
 import { createMockLibrary } from '../fixtures/games'
-import { clearLibraryCache, expect, setScanAllMock, test, writeLibraryCache } from './fixtures'
+import { clearLibraryCache, expect, goToAppPage, setScanAllMock, test, writeLibraryCache } from './fixtures'
 
 test.describe('library cache', () => {
   test.beforeEach(async ({ page }) => {
     await clearLibraryCache(page)
     await setScanAllMock(page, null)
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
   })
 
   test.afterEach(async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('library cache', () => {
     await writeLibraryCache(page, mockLibrary)
 
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
 
     await expect(page.getByText('Your games')).toBeVisible()
     await expect(page.getByTestId('game-library-grid')).toBeVisible()
@@ -62,6 +62,7 @@ test.describe('library cache', () => {
     expect(cached?.results).toHaveLength(4)
 
     await page.reload()
+    await goToAppPage(page, 'library')
     await page.waitForSelector('text=Last scan:')
 
     const restored = await page.evaluate(() => window.gameApi.getLibrary())

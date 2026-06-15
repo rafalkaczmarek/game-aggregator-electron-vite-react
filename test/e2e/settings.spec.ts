@@ -1,8 +1,11 @@
 /// <reference path="./global.d.ts" />
 
-import { expect, test } from './fixtures'
+import { expect, goToAppPage, test } from './fixtures'
 
 test.describe('settings', () => {
+  test.beforeEach(async ({ page }) => {
+    await goToAppPage(page, 'settings')
+  })
   test.afterEach(async ({ page }) => {
     await page.evaluate(() =>
       window.settingsApi.update({ steamApiKey: '', githubPat: '', psnNpsso: '', psnOnlineId: '' }),

@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import path from 'node:path'
-import { expect, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
+import { expect, goToAppPage, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
 
 test.describe('GOG scanner', () => {
   const fixtureDb = path.join(root, 'test', 'fixtures', 'gog', 'galaxy-2.0.db')
@@ -73,7 +73,7 @@ test.describe('GOG scanner', () => {
 
     await setGogGalaxyDb(page, fixtureDb)
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
 
     await page.click('button:has-text("Scan libraries")')
     await page.waitForSelector('text=Last scan:')

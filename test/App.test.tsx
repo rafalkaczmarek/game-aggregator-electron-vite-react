@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
 import type { SettingsApi } from '@shared/types/settings'
@@ -27,12 +28,28 @@ describe('App', () => {
     }
   })
 
-  it('renders the shell with settings and library sections', async () => {
+  it('renders the shell with sidebar navigation and home page', () => {
     render(<App />)
 
+    expect(screen.getByTestId('app-sidebar')).toBeInTheDocument()
+    expect(screen.getByTestId('home-page')).toBeInTheDocument()
     expect(screen.getByText('Wszystkie gry w jednym miejscu.')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Pokaż rekomendacje' })).toBeInTheDocument()
+    expect(screen.getByTestId('nav-library')).toBeInTheDocument()
+    expect(screen.getByTestId('nav-recommendations')).toBeInTheDocument()
+    expect(screen.getByTestId('nav-settings')).toBeInTheDocument()
+  })
+
+  it('navigates to separate pages from the sidebar', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByTestId('nav-library'))
     expect(screen.getByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('nav-recommendations'))
+    expect(screen.getByTestId('recommendations-section')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('nav-settings'))
+    expect(screen.getByText('Settings', { exact: true })).toBeInTheDocument()
   })
 })

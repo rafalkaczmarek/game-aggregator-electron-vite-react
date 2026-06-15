@@ -1,6 +1,6 @@
 /// <reference path="./global.d.ts" />
 
-import { expect, test } from './fixtures'
+import { expect, goToAppPage, test } from './fixtures'
 
 test.describe('startup', () => {
   test('shows correct window title', async ({ page }) => {
@@ -9,14 +9,15 @@ test.describe('startup', () => {
   })
 
   test('shows game aggregator home page', async ({ page }) => {
-    const h1 = await page.$('h1')
-    const title = await h1?.textContent()
-    expect(title).toBe('Wszystkie gry w jednym miejscu.')
+    await goToAppPage(page, 'home')
+    await expect(page.getByTestId('home-page')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Wszystkie gry w jednym miejscu.' })).toBeVisible()
   })
 
   test('scan libraries shows platform results', async ({ page }) => {
     test.setTimeout(60_000)
 
+    await goToAppPage(page, 'library')
     await page.click('button:has-text("Scan libraries")')
     await page.waitForSelector('text=Last scan:')
 

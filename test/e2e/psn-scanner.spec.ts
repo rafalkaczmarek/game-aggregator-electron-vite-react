@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import path from 'node:path'
-import { configurePsnScan, expect, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
+import { configurePsnScan, expect, goToAppPage, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
 import { psnPurchasedGamesFixture } from '../fixtures/psn'
 
 test.describe('PSN scanner', () => {
@@ -133,7 +133,7 @@ test.describe('PSN scanner', () => {
 
     await setGogGalaxyDb(page, fixtureDb)
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
     await configurePsnScan(page, psnPurchasedGamesFixture)
 
     await page.click('button:has-text("Scan libraries")')

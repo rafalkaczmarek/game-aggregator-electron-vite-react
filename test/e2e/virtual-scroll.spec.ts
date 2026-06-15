@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import { createLargeMockLibrary } from '../fixtures/games'
-import { expect, setScanAllMock, test } from './fixtures'
+import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 const LARGE_LIBRARY_SIZE = 100
 
@@ -21,7 +21,7 @@ test.describe('virtual scroll', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
     await setScanAllMock(page, null)
   })
 

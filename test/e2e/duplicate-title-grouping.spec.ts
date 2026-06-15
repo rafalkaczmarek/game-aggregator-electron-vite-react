@@ -1,12 +1,12 @@
 /// <reference path="./global.d.ts" />
 
 import { createDuplicateTitleLibrary, createMockLibrary } from '../fixtures/games'
-import { expect, setScanAllMock, test } from './fixtures'
+import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 test.describe('duplicate title grouping', () => {
   test.beforeEach(async ({ page }) => {
     await page.reload()
-    await page.waitForSelector('button:has-text("Scan libraries")')
+    await goToAppPage(page, 'library')
     await setScanAllMock(page, null)
   })
 
