@@ -35,10 +35,11 @@ test.describe('game library views', () => {
     await expect(page.getByTestId('game-library-grid')).toBeVisible()
 
     await page.getByRole('button', { name: 'List view' }).click()
-    await expect(page.getByTestId('game-library-list')).toBeVisible()
+    const list = page.getByTestId('game-library-list')
+    await expect(list).toBeVisible()
     await expect(page.getByTestId('game-library-grid')).toHaveCount(0)
-    await expect(page.getByText('Not played')).toBeVisible()
-    await expect(page.getByText('2.1 hrs')).toBeVisible()
+    await expect(list.getByText('Not played')).toBeVisible()
+    await expect(list.getByText('2.1 hrs')).toBeVisible()
 
     await page.getByRole('button', { name: 'Grid view' }).click()
     await expect(page.getByTestId('game-library-grid')).toBeVisible()

@@ -170,7 +170,46 @@ describe('GameLibrary', () => {
 
     await user.click(screen.getByRole('button', { name: 'PSN' }))
 
-    expect(screen.getByText(/No games match the selected platforms/i)).toBeInTheDocument()
+    expect(screen.getByText(/No games match the current filters/i)).toBeInTheDocument()
     expect(screen.queryByTestId('game-library-grid')).not.toBeInTheDocument()
+  })
+
+  it('filters games by play status', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Not played' }))
+
+    const grid = screen.getByTestId('game-library-grid')
+    expect(within(grid).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(grid).getByText('Cyberpunk 2077')).toBeInTheDocument()
+    expect(screen.getByText(/\(filtered\)/i)).toBeInTheDocument()
+  })
+
+  it('shows only played games when Played filter is selected', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Played' }))
+
+    const grid = screen.getByTestId('game-library-grid')
+    expect(within(grid).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(grid).getByText('Alan Wake')).toBeInTheDocument()
+    expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
+    expect(within(grid).queryByText('Cyberpunk 2077')).not.toBeInTheDocument()
   })
 })

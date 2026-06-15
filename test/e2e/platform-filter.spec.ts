@@ -89,7 +89,7 @@ test.describe('platform filter', () => {
     await page.click('button:has-text("Scan libraries")')
     await page.getByRole('button', { name: 'PSN' }).click()
 
-    await expect(page.getByText(/No games match the selected platforms/i)).toBeVisible()
+    await expect(page.getByText(/No games match the current filters/i)).toBeVisible()
     await expect(page.getByTestId('game-library-grid')).toHaveCount(0)
     await expect(page.getByText('(filtered)')).toBeVisible()
   })

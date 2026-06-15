@@ -111,3 +111,22 @@ export function filterGamesByPlatforms(games: Game[], platforms: readonly GamePl
   const allowed = new Set(platforms)
   return games.filter((game) => allowed.has(game.platform))
 }
+
+export type PlayStatusFilter = 'all' | 'played' | 'unplayed'
+
+export function isGamePlayed(game: Game): boolean {
+  return (game.playtimeMinutes ?? 0) > 0
+}
+
+export function isGroupedGamePlayed(group: GroupedGame): boolean {
+  return getGroupedGamePlaytime(group) != null
+}
+
+export function filterGroupedGamesByPlayStatus(
+  groups: GroupedGame[],
+  status: PlayStatusFilter,
+): GroupedGame[] {
+  if (status === 'all') return groups
+  if (status === 'played') return groups.filter(isGroupedGamePlayed)
+  return groups.filter((group) => !isGroupedGamePlayed(group))
+}

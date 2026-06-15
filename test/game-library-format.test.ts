@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  filterGroupedGamesByPlayStatus,
   formatPlaytime,
   getGroupedGameCoverGame,
   getGroupedGamePlaytime,
   groupGamesByTitle,
   isGroupedGameInstalled,
+  isGroupedGamePlayed,
+  isGamePlayed,
   normalizeGameTitle,
   normalizeTitleCharacters,
   sortGamesByTitle,
@@ -77,6 +80,41 @@ describe('game library format helpers', () => {
 
     it('marks grouped game installed when any entry is installed', () => {
       expect(isGroupedGameInstalled(group)).toBe(true)
+    })
+
+    it('detects played games and groups', () => {
+      expect(isGamePlayed(group.entries[0])).toBe(true)
+      expect(isGamePlayed({ id: 'idle', platform: 'steam', title: 'Idle', installed: false })).toBe(
+        false,
+      )
+      expect(
+        isGamePlayed({
+          id: 'zero',
+          platform: 'steam',
+          title: 'Zero',
+          installed: false,
+          playtimeMinutes: 0,
+        }),
+      ).toBe(false)
+      expect(isGroupedGamePlayed(group)).toBe(true)
+    })
+  })
+
+  describe('filterGroupedGamesByPlayStatus', () => {
+    const groups = groupGamesByTitle(sampleGames)
+
+    it('returns all groups when status is all', () => {
+      expect(filterGroupedGamesByPlayStatus(groups, 'all')).toHaveLength(3)
+    })
+
+    it('keeps only played groups', () => {
+      const played = filterGroupedGamesByPlayStatus(groups, 'played')
+      expect(played.map((group) => group.title).sort()).toEqual(['Alan Wake', 'Dota 2'])
+    })
+
+    it('keeps only unplayed groups', () => {
+      const unplayed = filterGroupedGamesByPlayStatus(groups, 'unplayed')
+      expect(unplayed.map((group) => group.title)).toEqual(['Cyberpunk 2077'])
     })
   })
 
