@@ -1,5 +1,5 @@
+import { useSteamSettings } from '../hooks/useSteamSettings'
 import { SecretField } from './SecretField'
-import { useSteamSettings } from './useSteamSettings'
 
 export default function SteamSettings() {
   const { configured, draftKey, setDraftKey, saving, message, handleSave, clearKey } =

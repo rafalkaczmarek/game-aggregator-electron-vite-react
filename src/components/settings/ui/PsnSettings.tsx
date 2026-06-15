@@ -1,5 +1,5 @@
+import { usePsnSettings } from '../hooks/usePsnSettings'
 import { SecretField, settingsInputClassName } from './SecretField'
-import { usePsnSettings } from './usePsnSettings'
 
 export default function PsnSettings() {
   const {

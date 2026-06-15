@@ -1,8 +1,8 @@
 import { useMemo, useRef } from 'react'
 import GameListRow from './GameListRow'
-import { type GroupedGame } from './format'
-import { useScrollContainerMetrics } from './useScrollContainerMetrics'
-import { getVisibleGridRange, LIBRARY_SCROLL_HEIGHT_CLASS, LIST_ROW_HEIGHT } from './virtualScroll'
+import { type GroupedGame } from '../lib/types'
+import { useScrollContainerMetrics } from '../hooks/useScrollContainerMetrics'
+import { getVisibleGridRange, LIBRARY_SCROLL_HEIGHT_CLASS, LIST_ROW_HEIGHT } from '../lib/virtualScroll'
 
 export default function GameListView({ games }: { games: GroupedGame[] }) {
   const scrollRef = useRef<HTMLDivElement>(null)

@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
-import GameLibrary from '@src/components/GameLibrary'
+import GameLibrary from '@src/components/game-library/GameLibrary'
 import { createMockLibrary, createDuplicateTitleLibrary } from './fixtures/games'
 
 describe('GameLibrary', () => {

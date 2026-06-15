@@ -1,6 +1,6 @@
-import PsnSettings from './settings/PsnSettings'
-import { SettingsProvider } from './settings/SettingsContext'
-import SteamSettings from './settings/SteamSettings'
+import { SettingsProvider } from './context/SettingsContext'
+import PsnSettings from './ui/PsnSettings'
+import SteamSettings from './ui/SteamSettings'
 
 export default function Settings() {
   return (

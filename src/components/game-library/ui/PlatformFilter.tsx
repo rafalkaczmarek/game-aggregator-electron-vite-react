@@ -1,6 +1,6 @@
 import type { GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
-import { PLATFORM_LABELS } from './format'
+import { PLATFORM_LABELS } from '../lib/labels'
 
 const PLATFORM_STYLES: Record<GamePlatform, { on: string; off: string }> = {
   steam: {

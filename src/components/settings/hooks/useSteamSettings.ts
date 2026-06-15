@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react'
-import { settingsUpdateFactory } from './settingsUpdateFactory'
-import { useSettingsContext } from './SettingsContext'
+import { useSettingsContext } from '../context/SettingsContext'
+import { settingsUpdateFactory } from '../lib/settingsUpdateFactory'
 
 export function useSteamSettings() {
   const { state, update } = useSettingsContext()

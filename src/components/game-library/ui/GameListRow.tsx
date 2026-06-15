@@ -2,12 +2,12 @@ import { memo } from 'react'
 import GameCover from './GameCover'
 import { PlatformBadges } from './PlatformBadge'
 import {
-  formatPlaytime,
   getGroupedGameCoverGame,
   getGroupedGamePlaytime,
   isGroupedGameInstalled,
-  type GroupedGame,
-} from './format'
+} from '../lib/grouping'
+import { formatPlaytime } from '../lib/playtime'
+import type { GroupedGame } from '../lib/types'
 
 function GameListRow({ game }: { game: GroupedGame }) {
   const coverGame = getGroupedGameCoverGame(game)

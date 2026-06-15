@@ -4,7 +4,7 @@ import {
   getGridColumnCount,
   getVisibleGridRange,
   LIST_ROW_HEIGHT,
-} from '@src/components/game-library/virtualScroll'
+} from '@src/components/game-library/lib/virtualScroll'
 
 describe('virtualScroll', () => {
   it('maps container width to grid column counts', () => {

@@ -1,4 +1,4 @@
-import type { PlayStatusFilter as PlayStatusFilterValue } from './format'
+import type { PlayStatusFilter as PlayStatusFilterValue } from '../lib/types'
 
 const PLAY_STATUS_OPTIONS: { value: PlayStatusFilterValue; label: string }[] = [
   { value: 'all', label: 'All' },

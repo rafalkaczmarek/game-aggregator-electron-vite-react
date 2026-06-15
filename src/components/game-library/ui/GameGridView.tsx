@@ -1,13 +1,13 @@
 import { useMemo, useRef } from 'react'
 import GameGridCard from './GameGridCard'
-import { type GroupedGame } from './format'
-import { useScrollContainerMetrics } from './useScrollContainerMetrics'
+import { type GroupedGame } from '../lib/types'
+import { useScrollContainerMetrics } from '../hooks/useScrollContainerMetrics'
 import {
   estimateGridRowHeight,
   getGridColumnCount,
   getVisibleGridRange,
   LIBRARY_SCROLL_HEIGHT_CLASS,
-} from './virtualScroll'
+} from '../lib/virtualScroll'
 
 const GRID_GAP_PX = 12
 

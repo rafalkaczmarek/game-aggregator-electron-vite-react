@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import PlatformFilter from '@src/components/game-library/PlatformFilter'
+import PlatformFilter from '@src/components/game-library/ui/PlatformFilter'
 
 describe('PlatformFilter', () => {
   it('adds a platform in canonical order', async () => {

@@ -1,5 +1,5 @@
 import type { GamePlatform } from '@shared/types/game'
-import { PLATFORM_LABELS } from './format'
+import { PLATFORM_LABELS } from '../lib/labels'
 
 const PLATFORM_STYLES: Record<GamePlatform, string> = {
   steam: 'border-sky-200 bg-sky-50 text-sky-800',

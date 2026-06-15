@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { settingsUpdateFactory } from './settingsUpdateFactory'
-import { useSettingsContext } from './SettingsContext'
+import { useSettingsContext } from '../context/SettingsContext'
+import { settingsUpdateFactory } from '../lib/settingsUpdateFactory'
 
 export function usePsnSettings() {
   const { state, update } = useSettingsContext()

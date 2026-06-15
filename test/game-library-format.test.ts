@@ -12,7 +12,7 @@ import {
   normalizeTitleCharacters,
   sortGamesByTitle,
   sortGroupedGamesByTitle,
-} from '@src/components/game-library/format'
+} from '@src/components/game-library/lib/format'
 import type { Game } from '@shared/types/game'
 import { sampleGames } from './fixtures/games'
 

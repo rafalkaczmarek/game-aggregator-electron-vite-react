@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import GameCover from '@src/components/game-library/GameCover'
+import GameCover from '@src/components/game-library/ui/GameCover'
 import { sampleGames } from './fixtures/games'
 
 describe('GameCover', () => {

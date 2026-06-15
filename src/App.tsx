@@ -1,5 +1,5 @@
-import GameLibrary from '@src/components/GameLibrary'
-import Settings from '@src/components/Settings'
+import GameLibrary from '@src/components/game-library/GameLibrary'
+import Settings from '@src/components/settings/Settings'
 
 function App() {
   return (

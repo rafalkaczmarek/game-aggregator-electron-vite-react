@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsApi } from '@shared/types/settings'
-import Settings from '@src/components/Settings'
+import Settings from '@src/components/settings/Settings'
 
 describe('Settings', () => {
   const get = vi.fn<SettingsApi['get']>()

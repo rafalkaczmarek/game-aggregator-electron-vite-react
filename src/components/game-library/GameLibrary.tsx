@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
-import GameGridView from './game-library/GameGridView'
-import GameListView from './game-library/GameListView'
-import PlatformFilter from './game-library/PlatformFilter'
-import PlayStatusFilter from './game-library/PlayStatusFilter'
-import ViewToggle, { type LibraryViewMode } from './game-library/ViewToggle'
-import {
-  filterGamesByPlatforms,
-  filterGroupedGamesByPlayStatus,
-  groupGamesByTitle,
-  sortGroupedGamesByTitle,
-  type PlayStatusFilter as PlayStatusFilterValue,
-} from './game-library/format'
+import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
+import { groupGamesByTitle } from './lib/grouping'
+import { sortGroupedGamesByTitle } from './lib/sort'
+import type { PlayStatusFilter as PlayStatusFilterValue } from './lib/types'
+import GameGridView from './ui/GameGridView'
+import GameListView from './ui/GameListView'
+import PlatformFilter from './ui/PlatformFilter'
+import PlayStatusFilter from './ui/PlayStatusFilter'
+import ViewToggle, { type LibraryViewMode } from './ui/ViewToggle'
 
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)

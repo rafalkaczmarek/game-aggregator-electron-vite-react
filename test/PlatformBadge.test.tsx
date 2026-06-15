@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import PlatformBadge, { PlatformBadges } from '@src/components/game-library/PlatformBadge'
+import PlatformBadge, { PlatformBadges } from '@src/components/game-library/ui/PlatformBadge'
 
 describe('PlatformBadge', () => {
   it('renders a single platform label', () => {

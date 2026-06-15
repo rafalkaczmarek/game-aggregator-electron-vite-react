@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import PlayStatusFilter from '@src/components/game-library/PlayStatusFilter'
+import PlayStatusFilter from '@src/components/game-library/ui/PlayStatusFilter'
 
 describe('PlayStatusFilter', () => {
   it('selects a play status filter', async () => {

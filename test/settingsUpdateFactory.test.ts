@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { settingsUpdateFactory } from '@src/components/settings/settingsUpdateFactory'
+import { settingsUpdateFactory } from '@src/components/settings/lib/settingsUpdateFactory'
 
 describe('settingsUpdateFactory', () => {
   describe('steam', () => {
