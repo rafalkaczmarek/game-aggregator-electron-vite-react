@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
+import RouteLoadingFallback from '@src/components/app-shell/ui/RouteLoadingFallback'
 import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
 import { groupGamesByTitle } from './lib/grouping'
 import { sortGroupedGames } from './lib/sort'
@@ -14,6 +15,7 @@ import ViewToggle, { type LibraryViewMode } from './ui/ViewToggle'
 
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState<LibraryViewMode>('grid')
   const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
@@ -21,9 +23,25 @@ export default function GameLibrary() {
   const [librarySort, setLibrarySort] = useState<LibrarySort>('title')
 
   useEffect(() => {
+    let cancelled = false
+
     void window.gameApi.getLibrary().then((cached) => {
-      if (cached) setLibrary(cached)
+      if (cancelled) return
+
+      if (cached) {
+        startTransition(() => {
+          setLibrary(cached)
+          setInitialLoading(false)
+        })
+        return
+      }
+
+      setInitialLoading(false)
     })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   async function handleScan() {
@@ -63,7 +81,12 @@ export default function GameLibrary() {
         </button>
       </div>
 
-      {library && (
+      {initialLoading ? (
+        <div className='mt-6'>
+          <RouteLoadingFallback embedded label='Ładowanie biblioteki…' />
+        </div>
+      ) : (
+        library && (
         <div className='mt-6 space-y-4'>
           <p className='text-sm text-slate-500'>
             Last scan: {new Date(library.scannedAt).toLocaleString()} — {groupedGames.length} games
@@ -117,6 +140,7 @@ export default function GameLibrary() {
             </p>
           )}
         </div>
+        )
       )}
     </section>
   )

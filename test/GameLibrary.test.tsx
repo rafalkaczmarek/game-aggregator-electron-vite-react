@@ -5,6 +5,12 @@ import type { GameApi } from '@shared/types/game'
 import GameLibrary from '@src/components/game-library/GameLibrary'
 import { createMockLibrary, createDuplicateTitleLibrary } from './fixtures/games'
 
+async function waitForLibraryShell() {
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
+  })
+}
+
 describe('GameLibrary', () => {
   const scanAll = vi.fn<GameApi['scanAll']>()
   const getLibrary = vi.fn<GameApi['getLibrary']>()
@@ -44,6 +50,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -66,6 +73,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -86,6 +94,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -101,6 +110,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -120,6 +130,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -134,6 +145,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -153,6 +165,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -168,6 +181,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -185,6 +199,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {
@@ -204,6 +219,7 @@ describe('GameLibrary', () => {
     const user = userEvent.setup()
 
     render(<GameLibrary />)
+    await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
     await waitFor(() => {

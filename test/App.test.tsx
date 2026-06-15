@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
@@ -44,13 +44,15 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByTestId('nav-library'))
-    expect(screen.getByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
 
     await user.click(screen.getByTestId('nav-recommendations'))
-    expect(screen.getByTestId('recommendations-section')).toBeInTheDocument()
+    expect(await screen.findByTestId('recommendations-section')).toBeInTheDocument()
 
     await user.click(screen.getByTestId('nav-settings'))
-    expect(screen.getByTestId('settings-section')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-page-steam')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-section')).toBeInTheDocument()
+      expect(screen.getByTestId('settings-page-steam')).toBeInTheDocument()
+    })
   })
 })
