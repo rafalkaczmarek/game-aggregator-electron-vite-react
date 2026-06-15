@@ -1,8 +1,27 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsApi } from '@shared/types/settings'
 import Settings from '@src/components/settings/Settings'
+import GitHubModelsSettingsPage from '@src/components/settings/ui/GitHubModelsSettingsPage'
+import PsnSettingsPage from '@src/components/settings/ui/PsnSettingsPage'
+import SteamSettingsPage from '@src/components/settings/ui/SteamSettingsPage'
+
+function renderSettings(initialPath = '/settings/steam') {
+  return render(
+    <MemoryRouter initialEntries={[initialPath]}>
+      <Routes>
+        <Route path='/settings' element={<Settings />}>
+          <Route index element={<Navigate to='steam' replace />} />
+          <Route path='steam' element={<SteamSettingsPage />} />
+          <Route path='github' element={<GitHubModelsSettingsPage />} />
+          <Route path='psn' element={<PsnSettingsPage />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>,
+  )
+}
 
 describe('Settings', () => {
   const get = vi.fn<SettingsApi['get']>()
@@ -18,7 +37,7 @@ describe('Settings', () => {
   it('loads current settings state on mount', async () => {
     get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings()
 
     await waitFor(() => {
       expect(screen.getByText('Steam API key configured')).toBeInTheDocument()
@@ -28,7 +47,7 @@ describe('Settings', () => {
 
   it('shows message when saving empty key without configured key', async () => {
     const user = userEvent.setup()
-    render(<Settings />)
+    renderSettings()
 
     await waitFor(() => {
       expect(screen.getByLabelText('Steam Web API key')).toBeInTheDocument()
@@ -44,7 +63,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings()
     await waitFor(() => {
       expect(screen.getByLabelText('Steam Web API key')).toBeInTheDocument()
     })
@@ -62,7 +81,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockRejectedValue(new Error('save failed'))
 
-    render(<Settings />)
+    renderSettings()
     await waitFor(() => {
       expect(screen.getByLabelText('Steam Web API key')).toBeInTheDocument()
     })
@@ -80,7 +99,7 @@ describe('Settings', () => {
     get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
     update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings()
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Clear key' })).toBeInTheDocument()
     })
@@ -98,7 +117,7 @@ describe('Settings', () => {
     get.mockResolvedValue({ steamApiKeySet: true, githubPatSet: false, psnNpssoSet: false })
     update.mockRejectedValue(new Error('clear failed'))
 
-    render(<Settings />)
+    renderSettings()
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Clear key' })).toBeInTheDocument()
     })
@@ -118,7 +137,7 @@ describe('Settings', () => {
       psnOnlineId: 'player-one',
     })
 
-    render(<Settings />)
+    renderSettings('/settings/psn')
 
     await waitFor(() => {
       expect(screen.getByLabelText('PSN Online ID (optional)')).toHaveValue('player-one')
@@ -135,7 +154,7 @@ describe('Settings', () => {
       psnOnlineId: 'player-one',
     })
 
-    render(<Settings />)
+    renderSettings('/settings/psn')
     await waitFor(() => {
       expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
     })
@@ -156,7 +175,7 @@ describe('Settings', () => {
   it('shows message when saving whitespace-only npsso', async () => {
     const user = userEvent.setup()
 
-    render(<Settings />)
+    renderSettings('/settings/psn')
     await waitFor(() => {
       expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
     })
@@ -175,7 +194,7 @@ describe('Settings', () => {
     get.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: true })
     update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings('/settings/psn')
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Clear token' })).toBeInTheDocument()
     })
@@ -192,7 +211,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockRejectedValue(new Error('psn save failed'))
 
-    render(<Settings />)
+    renderSettings('/settings/psn')
     await waitFor(() => {
       expect(screen.getByLabelText('PSN NPSSO token')).toBeInTheDocument()
     })
@@ -209,7 +228,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: true, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings('/settings/github')
     await waitFor(() => {
       expect(screen.getByLabelText('GitHub Personal Access Token')).toBeInTheDocument()
     })
@@ -228,7 +247,7 @@ describe('Settings', () => {
     get.mockResolvedValue({ steamApiKeySet: false, githubPatSet: true, psnNpssoSet: false })
     update.mockResolvedValue({ steamApiKeySet: false, githubPatSet: false, psnNpssoSet: false })
 
-    render(<Settings />)
+    renderSettings('/settings/github')
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Usuń token' })).toBeInTheDocument()
     })
@@ -245,7 +264,7 @@ describe('Settings', () => {
     const user = userEvent.setup()
     update.mockRejectedValue(new Error('github save failed'))
 
-    render(<Settings />)
+    renderSettings('/settings/github')
     await waitFor(() => {
       expect(screen.getByLabelText('GitHub Personal Access Token')).toBeInTheDocument()
     })

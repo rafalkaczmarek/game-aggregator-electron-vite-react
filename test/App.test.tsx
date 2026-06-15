@@ -50,6 +50,7 @@ describe('App', () => {
     expect(screen.getByTestId('recommendations-section')).toBeInTheDocument()
 
     await user.click(screen.getByTestId('nav-settings'))
-    expect(screen.getByText('Settings', { exact: true })).toBeInTheDocument()
+    expect(screen.getByTestId('settings-section')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-page-steam')).toBeInTheDocument()
   })
 })

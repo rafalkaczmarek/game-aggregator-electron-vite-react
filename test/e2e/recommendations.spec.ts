@@ -107,6 +107,8 @@ test.describe('recommendations', () => {
 
   test('saves github pat and enables recommendations button', async ({ page }) => {
     await goToAppPage(page, 'settings')
+    await page.getByTestId('settings-nav-github').click()
+    await page.waitForSelector('#github-pat')
     await page.fill('#github-pat', 'e2e-github-pat-token')
     await page.getByRole('button', { name: 'Zapisz token GitHub' }).click()
 

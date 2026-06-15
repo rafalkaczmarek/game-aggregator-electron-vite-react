@@ -1,25 +1,28 @@
+import { Outlet } from 'react-router-dom'
 import { SettingsProvider } from './context/SettingsContext'
-import GitHubModelsSettings from './ui/GitHubModelsSettings'
-import PsnSettings from './ui/PsnSettings'
-import SteamSettings from './ui/SteamSettings'
+import SettingsSubNav from './ui/SettingsSubNav'
 
 export default function Settings() {
   return (
     <SettingsProvider>
-      <section className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
+      <section
+        data-testid='settings-section'
+        className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'
+      >
         <div className='space-y-1'>
-          <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Settings</div>
+          <div className='text-sm uppercase tracking-[0.3em] text-slate-500'>Ustawienia</div>
           <p className='text-sm text-slate-600'>
-            Secrets are stored in the main process only. Steam Web API enriches your library with
-            titles, playtime, and covers. GitHub Models (gpt-4.1-mini) powers personalized game
-            recommendations with a free prototyping tier. PSN uses your NPSSO token to fetch trophy trophy titles from PlayStation Network.
+            Sekrety i klucze API są przechowywane wyłącznie w main process. Wybierz platformę, aby
+            skonfigurować połączenie.
           </p>
         </div>
 
-        <div className='mt-6 space-y-8'>
-          <SteamSettings />
-          <GitHubModelsSettings />
-          <PsnSettings />
+        <div className='mt-6'>
+          <SettingsSubNav />
+        </div>
+
+        <div className='mt-8'>
+          <Outlet />
         </div>
       </section>
     </SettingsProvider>

@@ -15,7 +15,7 @@ export default function PsnSettings() {
   } = usePsnSettings()
 
   return (
-    <form onSubmit={handleSave} className='space-y-4 border-t border-slate-100 pt-8'>
+    <form onSubmit={handleSave} className='space-y-4'>
       <SecretField
         id='psn-npsso'
         label='PSN NPSSO token'

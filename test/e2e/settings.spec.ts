@@ -12,15 +12,29 @@ test.describe('settings', () => {
     )
   })
 
-  test('shows steam api key settings form', async ({ page }) => {
-    await expect(page.getByText('Settings', { exact: true })).toBeVisible()
+  test('shows settings layout with sub-navigation', async ({ page }) => {
+    await expect(page.getByTestId('settings-section')).toBeVisible()
+    await expect(page.getByTestId('settings-subnav')).toBeVisible()
+    await expect(page.getByTestId('settings-nav-steam')).toBeVisible()
+    await expect(page.getByTestId('settings-nav-github')).toBeVisible()
+    await expect(page.getByTestId('settings-nav-psn')).toBeVisible()
+    await expect(page.getByTestId('settings-page-steam')).toBeVisible()
     await expect(page.locator('#steam-api-key')).toBeVisible()
     await expect(page.getByLabel('Steam Web API key')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save API key' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'steamcommunity.com/dev/apikey' })).toBeVisible()
+  })
+
+  test('navigates between settings sub-pages', async ({ page }) => {
+    await page.getByTestId('settings-nav-github').click()
+    await expect(page.getByTestId('settings-page-github')).toBeVisible()
+    await expect(page.getByLabel('GitHub Personal Access Token')).toBeVisible()
+
+    await page.getByTestId('settings-nav-psn').click()
+    await expect(page.getByTestId('settings-page-psn')).toBeVisible()
     await expect(page.locator('#psn-npsso')).toBeVisible()
     await expect(page.getByLabel('PSN NPSSO token')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Save API key' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Save account settings' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'steamcommunity.com/dev/apikey' })).toBeVisible()
   })
 
   test('saving empty key without configured key shows message', async ({ page }) => {
@@ -65,6 +79,9 @@ test.describe('settings', () => {
   })
 
   test('saves and clears psn npsso through UI', async ({ page }) => {
+    await page.getByTestId('settings-nav-psn').click()
+    await page.waitForSelector('#psn-npsso')
+
     await page.fill('#psn-npsso', 'e2e-test-psn-npsso')
     await page.getByRole('button', { name: 'Save account settings' }).click()
 
@@ -84,6 +101,9 @@ test.describe('settings', () => {
   })
 
   test('persists psn online id through settings API', async ({ page }) => {
+    await page.getByTestId('settings-nav-psn').click()
+    await page.waitForSelector('#psn-online-id')
+
     await page.fill('#psn-online-id', 'public-player')
     await page.getByRole('button', { name: 'Save account settings' }).click()
 
