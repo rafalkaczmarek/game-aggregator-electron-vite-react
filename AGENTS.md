@@ -39,6 +39,50 @@ src/components/
 
 Nowe feature'y dodawaj w tym samym schemacie (`FeatureName.tsx` + `ui/`, `lib/`, opcjonalnie `hooks/`, `context/`).
 
+## Konwencje nazw plików
+
+Spójne nazewnictwo ułatwia nawigację i importy. Zasady poniżej — nowe pliki muszą je spełniać.
+
+### Katalogi
+
+| Obszar | Konwencja | Przykład |
+|--------|-----------|----------|
+| Feature'y w `src/components/` | kebab-case | `game-library/`, `settings/` |
+| Podkatalogi warstw | małe litery, krótkie rzeczowniki | `ui/`, `lib/`, `hooks/`, `context/` |
+| Moduły Electron / shared | kebab-case lub płaskie nazwy domenowe | `electron/scanners/steam/`, `shared/types/` |
+
+### Pliki źródłowe
+
+| Typ pliku | Konwencja | Przykład |
+|-----------|-----------|----------|
+| Komponent React (`.tsx`) | **PascalCase** = nazwa domyślnego eksportu | `GameGridView.tsx`, `RecommendationCard.tsx` |
+| Entry point feature | **PascalCase** | `GameLibrary.tsx`, `Settings.tsx` |
+| Hook React | **camelCase**, prefiks `use` | `usePsnSettings.ts` |
+| Context React | **PascalCase**, sufiks `Context` | `SettingsContext.tsx` |
+| Moduł logiki (`lib/`, utils, pure TS) | **camelCase** | `virtualScroll.ts`, `titleNormalization.ts` |
+| Typy współdzielone (`shared/types/`) | **camelCase**, rzeczownik w liczbie pojedynczej | `game.ts`, `recommendations.ts` |
+| Barrel / entry point | `index.ts` | `electron/scanners/index.ts` |
+| Moduł jednosłowny (skanery, IPC) | **małe litery** — skrót lub krótki rzeczownik domenowy | `acf.ts`, `vdf.ts`, `api.ts`, `prompt.ts` |
+| Moduł wielowyrazowy (Electron, `lib/`) | **camelCase** | `librarySnapshot.ts`, `tokenEstimate.ts` |
+| Deklaracje ambient (`.d.ts`) | nazwa pakietu lub modułu | `vite-env.d.ts`, `electron-env.d.ts` |
+
+**Zasada ogólna:** jeśli plik eksportuje komponent React — PascalCase; jeśli eksportuje funkcje/typy — camelCase (lub jedno słowo małymi literami, gdy to ugruntowany skrót w danym folderze).
+
+### Testy
+
+| Typ | Konwencja | Przykład |
+|-----|-----------|----------|
+| Test komponentu React | **PascalCase** + `.test.tsx` (jak komponent) | `GameLibrary.test.tsx`, `Settings.test.tsx` |
+| Test modułu TS (unit) | **camelCase** + `.test.ts` (jak plik źródłowy lub `{obszar}{Moduł}`) | `virtualScroll.test.ts`, `recommendationsAi.test.ts` |
+| E2E (Playwright) | **kebab-case** + `.spec.ts` | `library-sort.spec.ts`, `play-status-filter.spec.ts` |
+| Setup / helpers testów | **camelCase** | `setup.ts`, `fixtures.ts` |
+| Fixture'y danych | **camelCase** | `games.ts`, `psnPlayed.ts`, `buildFixture.ts` |
+
+Testy komponentów: nazwa pliku = nazwa komponentu + `.test.tsx`.  
+Testy modułów bez odpowiednika komponentu: camelCase opisujący testowany moduł (np. `libraryStore.test.ts` dla `electron/main/library/store.ts`).
+
+**Nie mieszaj** kebab-case i PascalCase w `test/` (poza `test/e2e/`, gdzie kebab-case jest standardem Playwright).
+
 ### Importy
 
 - `App.tsx` importuje entry pointy: `@src/components/game-library/GameLibrary`, `@src/components/settings/Settings`
@@ -82,6 +126,7 @@ Filtry platformy i statusu **łączą się** (AND). Pusty komunikat: „No games
 
 ### Unit (`test/`)
 
+- Pliki testowe: komponenty → `PascalCase.test.tsx`, moduły → `camelCase.test.ts` (patrz sekcja „Konwencje nazw plików”)
 - Importy z `game-library`: preferuj `@src/components/game-library/lib/format` lub konkretny moduł z `lib/`
 - Importy komponentów UI: `@src/components/game-library/ui/...`
 - Importy settings: `@src/components/settings/lib/...`, `@src/components/settings/Settings`

@@ -6,7 +6,7 @@ import {
   purchasedGameToGame,
   trophyTitleToGame,
 } from '../electron/scanners/psn/map'
-import { createPlayedGame } from './fixtures/psn-played'
+import { createPlayedGame } from './fixtures/psnPlayed'
 
 describe('psn duration', () => {
   it('parses ISO 8601 play durations into minutes', () => {
