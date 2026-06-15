@@ -13,7 +13,7 @@ export default function RecommendationCard({ recommendation }: RecommendationCar
           <img
             src={recommendation.coverUrl}
             alt=''
-            className='h-20 w-[4.5rem] shrink-0 rounded-xl object-cover shadow-sm'
+            className='h-20 w-[4.5rem] shrink-0 rounded-xl bg-slate-100 object-contain shadow-sm'
             loading='lazy'
           />
         ) : (

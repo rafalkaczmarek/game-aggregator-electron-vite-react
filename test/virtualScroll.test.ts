@@ -10,7 +10,9 @@ describe('virtualScroll', () => {
   it('maps container width to grid column counts', () => {
     expect(getGridColumnCount(500)).toBe(2)
     expect(getGridColumnCount(700)).toBe(3)
-    expect(getGridColumnCount(900)).toBe(4)
+    expect(getGridColumnCount(899)).toBe(4)
+    expect(getGridColumnCount(900)).toBe(5)
+    expect(getGridColumnCount(976)).toBe(5)
     expect(getGridColumnCount(1200)).toBe(5)
   })
 

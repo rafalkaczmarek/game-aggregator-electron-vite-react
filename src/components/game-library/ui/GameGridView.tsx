@@ -6,10 +6,9 @@ import {
   estimateGridRowHeight,
   getGridColumnCount,
   getVisibleGridRange,
+  GRID_GAP_PX,
   LIBRARY_SCROLL_HEIGHT_CLASS,
 } from '../lib/virtualScroll'
-
-const GRID_GAP_PX = 12
 
 export default function GameGridView({ games }: { games: GroupedGame[] }) {
   const scrollRef = useRef<HTMLDivElement>(null)

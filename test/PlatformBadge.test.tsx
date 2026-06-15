@@ -8,6 +8,11 @@ describe('PlatformBadge', () => {
     expect(screen.getByText('Steam')).toBeInTheDocument()
   })
 
+  it('renders compact badges without uppercase styling class noise', () => {
+    render(<PlatformBadge platform='steam' size='compact' />)
+    expect(screen.getByText('Steam')).toHaveClass('text-[13px]')
+  })
+
   it('renders multiple platform badges in order', () => {
     render(<PlatformBadges platforms={['gog', 'epic', 'steam']} />)
 

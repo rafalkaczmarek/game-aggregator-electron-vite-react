@@ -8,21 +8,42 @@ const PLATFORM_STYLES: Record<GamePlatform, string> = {
   psn: 'border-blue-200 bg-blue-50 text-blue-800',
 }
 
-export default function PlatformBadge({ platform }: { platform: GamePlatform }) {
+const BADGE_SIZE_CLASS = {
+  default: 'px-2 py-0.5 text-[11px] uppercase tracking-wide',
+  compact: 'px-1.5 py-0.5 text-[13px] leading-[1.3]',
+} as const
+
+interface PlatformBadgeProps {
+  platform: GamePlatform
+  size?: keyof typeof BADGE_SIZE_CLASS
+}
+
+export default function PlatformBadge({ platform, size = 'default' }: PlatformBadgeProps) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${PLATFORM_STYLES[platform]}`}
+      className={`inline-flex shrink-0 items-center rounded-md border font-semibold ${PLATFORM_STYLES[platform]} ${BADGE_SIZE_CLASS[size]}`}
     >
       {PLATFORM_LABELS[platform]}
     </span>
   )
 }
 
-export function PlatformBadges({ platforms }: { platforms: GamePlatform[] }) {
+interface PlatformBadgesProps {
+  platforms: GamePlatform[]
+  size?: keyof typeof BADGE_SIZE_CLASS
+}
+
+export function PlatformBadges({ platforms, size = 'default' }: PlatformBadgesProps) {
   return (
-    <div className='flex flex-wrap justify-end gap-1'>
+    <div
+      className={
+        size === 'compact'
+          ? 'flex min-w-0 flex-nowrap items-center gap-1'
+          : 'flex flex-wrap justify-end gap-1'
+      }
+    >
       {platforms.map((platform) => (
-        <PlatformBadge key={platform} platform={platform} />
+        <PlatformBadge key={platform} platform={platform} size={size} />
       ))}
     </div>
   )
