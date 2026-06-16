@@ -1,12 +1,16 @@
 import type { AggregatedLibrary } from '../../shared/types/game'
 import type { RecommendationsResult } from '../../shared/types/recommendations'
+import { createScopedLogger } from '../lib/logger'
 import { buildLibrarySnapshot, createGitHubModelsRecommendationsClient, getAiRecommendations } from './ai'
+
+const logger = createScopedLogger('recommendations')
 
 export async function getRecommendations(
   library: AggregatedLibrary,
   pat: string | undefined,
 ): Promise<RecommendationsResult> {
   if (!pat) {
+    logger.warn('GitHub PAT not configured')
     return {
       owned: [],
       discover: [],
@@ -20,6 +24,7 @@ export async function getRecommendations(
   const snapshot = buildLibrarySnapshot(library.games)
 
   if (snapshot.played.length === 0) {
+    logger.warn('No played games in library snapshot')
     return {
       owned: [],
       discover: [],
@@ -29,6 +34,10 @@ export async function getRecommendations(
   }
 
   try {
+    logger.info('Requesting AI recommendations', {
+      playedCount: snapshot.played.length,
+      unplayedCount: snapshot.unplayed.length,
+    })
     const client = createGitHubModelsRecommendationsClient(pat)
     const { owned, discover, errors } = await getAiRecommendations(snapshot, client)
 
@@ -41,6 +50,12 @@ export async function getRecommendations(
       errors.push('AI nie zaproponowało gier spoza biblioteki — spróbuj ponownie.')
     }
 
+    logger.info('AI recommendations received', {
+      ownedCount: owned.length,
+      discoverCount: discover.length,
+      errorCount: errors.length,
+    })
+
     return {
       owned,
       discover,
@@ -48,6 +63,7 @@ export async function getRecommendations(
       basedOnPlayedCount: snapshot.played.length,
     }
   } catch (error) {
+    logger.error('AI recommendations failed', error)
     return {
       owned: [],
       discover: [],

@@ -1,4 +1,5 @@
 import type { LibrarySnapshot } from './librarySnapshot'
+import { createScopedLogger } from '../lib/logger'
 import {
   GITHUB_MODELS_INPUT_TOKEN_LIMIT,
   GITHUB_MODELS_PROMPT_TOKEN_BUDGET,
@@ -7,6 +8,8 @@ import {
   logPromptTokenStats,
   type PromptTokenStats,
 } from './tokenEstimate'
+
+const logger = createScopedLogger('recommendations')
 
 export const SYSTEM_MESSAGE =
   'Jesteś ekspertem od gier wideo. Odpowiadasz wyłącznie poprawnym JSON-em zgodnym ze schematem podanym przez użytkownika.'
@@ -95,13 +98,13 @@ export function buildPromptWithinTokenBudget(
   logPromptTokenStats(stats, model)
 
   if (!stats.withinBudget) {
-    console.warn(
-      `[recommendations] Prompt still exceeds budget (~${stats.requestBodyTokens} est. tokens, limit ${stats.limit}). Request may fail.`,
+    logger.warn(
+      `Prompt still exceeds budget (~${stats.requestBodyTokens} est. tokens, limit ${stats.limit}). Request may fail.`,
     )
   }
 
   if (stats.playedOmitted > 0) {
-    console.info('[recommendations] Prompt trimmed to fit token budget', {
+    logger.info('Prompt trimmed to fit token budget', {
       playedOmitted: stats.playedOmitted,
       playedIncluded: stats.playedIncluded,
     })

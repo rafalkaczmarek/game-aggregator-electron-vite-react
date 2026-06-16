@@ -1,4 +1,8 @@
 /** Conservative chars-per-token heuristic (Polish + game titles). */
+import { createScopedLogger } from '../lib/logger'
+
+const logger = createScopedLogger('recommendations')
+
 const CHARS_PER_TOKEN = 3.5
 
 export const GITHUB_MODELS_INPUT_TOKEN_LIMIT = 8000
@@ -52,7 +56,7 @@ export function estimateMessagesTokens(
 }
 
 export function logPromptTokenStats(stats: PromptTokenStats, model: string): void {
-  console.info('[recommendations] GitHub Models request token estimate', {
+  logger.debug('GitHub Models request token estimate', {
     model,
     limit: stats.limit,
     requestBodyTokens: stats.requestBodyTokens,

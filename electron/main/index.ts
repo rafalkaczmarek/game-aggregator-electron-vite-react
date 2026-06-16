@@ -3,9 +3,12 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import { initLogger, log } from '../lib/logger'
 import { registerGameIpcHandlers } from './ipc/games'
 import { registerSettingsIpcHandlers } from './ipc/settings'
 import { update } from './update'
+
+initLogger()
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -47,6 +50,8 @@ const preload = path.join(__dirname, '../preload/index.mjs')
 const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
+  log.info('Creating main window', { devServer: Boolean(VITE_DEV_SERVER_URL) })
+
   win = new BrowserWindow({
     title: 'Game Aggregator',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
@@ -88,7 +93,10 @@ async function createWindow() {
 registerGameIpcHandlers()
 registerSettingsIpcHandlers()
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  log.info('App ready')
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   win = null
