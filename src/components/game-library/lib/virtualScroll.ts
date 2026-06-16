@@ -1,4 +1,6 @@
 export const LIBRARY_SCROLL_HEIGHT_CLASS = 'h-[min(70vh,900px)]'
+/** Matches the CSS max height in `LIBRARY_SCROLL_HEIGHT_CLASS` for pre-measure virtual scroll. */
+export const LIBRARY_SCROLL_FALLBACK_HEIGHT_PX = 900
 
 export const LIST_ROW_HEIGHT = 44
 
@@ -40,14 +42,13 @@ export function getVisibleGridRange(
   const rowCount = Math.ceil(itemCount / columnCount)
   const totalHeight = rowCount * rowHeight
 
-  if (viewportHeight <= 0) {
-    return { startIndex: 0, endIndex: itemCount, totalHeight }
-  }
+  const effectiveViewportHeight =
+    viewportHeight > 0 ? viewportHeight : LIBRARY_SCROLL_FALLBACK_HEIGHT_PX
 
   const startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - overscanRows)
   const endRow = Math.min(
     rowCount,
-    Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscanRows,
+    Math.ceil((scrollTop + effectiveViewportHeight) / rowHeight) + overscanRows,
   )
 
   return {

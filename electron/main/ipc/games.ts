@@ -12,7 +12,19 @@ import { setE2ePsnFixture, type PsnE2eFixture } from '../../scanners/psn/e2e'
 const logger = createScopedLogger('ipc:games')
 
 export function registerGameIpcHandlers(): void {
-  ipcMain.handle('games:get-library', () => readCachedLibrary())
+  ipcMain.handle('games:get-library', async () => {
+    const startedAt = performance.now()
+    const library = await readCachedLibrary()
+    const durationMs = Math.round(performance.now() - startedAt)
+
+    logger.info('games:get-library finished', {
+      durationMs,
+      gameCount: library?.games.length ?? 0,
+      cached: library !== null,
+    })
+
+    return library
+  })
 
   if (process.env.E2E_TEST === '1') {
     ipcMain.handle('e2e:write-library-cache', (_event, library: AggregatedLibrary) =>

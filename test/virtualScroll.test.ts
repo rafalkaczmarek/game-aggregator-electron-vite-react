@@ -16,11 +16,13 @@ describe('virtualScroll', () => {
     expect(getGridColumnCount(1200)).toBe(5)
   })
 
-  it('returns all items before the scroll container is measured', () => {
-    expect(getVisibleGridRange(0, 0, 12, 1, LIST_ROW_HEIGHT)).toEqual({
+  it('windows items with fallback height before the scroll container is measured', () => {
+    const range = getVisibleGridRange(0, 0, 100, 1, LIST_ROW_HEIGHT)
+
+    expect(range).toEqual({
       startIndex: 0,
-      endIndex: 12,
-      totalHeight: 12 * LIST_ROW_HEIGHT,
+      endIndex: 23,
+      totalHeight: 100 * LIST_ROW_HEIGHT,
     })
   })
 

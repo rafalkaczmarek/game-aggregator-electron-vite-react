@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from 'react'
+import { Profiler, startTransition, useEffect, useMemo, useState } from 'react'
 import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import RouteLoadingFallback from '@src/components/app-shell/ui/RouteLoadingFallback'
@@ -12,6 +12,11 @@ import PlatformFilter from './ui/PlatformFilter'
 import LibrarySortControl from './ui/LibrarySortControl'
 import PlayStatusFilter from './ui/PlayStatusFilter'
 import ViewToggle, { type LibraryViewMode } from './ui/ViewToggle'
+import {
+  GAME_LIBRARY_PROFILER_ID,
+  logGameLibraryRender,
+  measureGameLibrarySyncWork,
+} from './lib/gameLibraryProfiler'
 
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
@@ -48,20 +53,32 @@ export default function GameLibrary() {
     setLoading(true)
     try {
       const result = await window.gameApi.scanAll()
-      setLibrary(result)
+      startTransition(() => {
+        setLibrary(result)
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredGames = library ? filterGamesByPlatforms(library.games, selectedPlatforms) : []
-  const groupedGames = sortGroupedGames(
-    filterGroupedGamesByPlayStatus(groupGamesByTitle(filteredGames), playStatus),
-    librarySort,
+  const groupedGames = useMemo(
+    () =>
+      measureGameLibrarySyncWork('derive', () => {
+        const filteredGames = library
+          ? filterGamesByPlatforms(library.games, selectedPlatforms)
+          : []
+        return sortGroupedGames(
+          filterGroupedGamesByPlayStatus(groupGamesByTitle(filteredGames), playStatus),
+          librarySort,
+        )
+      }),
+    [library, selectedPlatforms, playStatus, librarySort],
   )
+
   const isFiltered = selectedPlatforms.length > 0 || playStatus !== 'all'
 
   return (
+    <Profiler id={GAME_LIBRARY_PROFILER_ID} onRender={logGameLibraryRender}>
     <section className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
       <div className='flex flex-wrap items-center justify-between gap-4'>
         <div>
@@ -143,5 +160,6 @@ export default function GameLibrary() {
         )
       )}
     </section>
+    </Profiler>
   )
 }
