@@ -1,6 +1,8 @@
 import type {
+  AggregatedLibrary,
   MetacriticEnrichmentFinished,
   MetacriticEnrichmentProgress,
+  MetacriticRatingUpdate,
 } from '@shared/types/game'
 
 export type MetacriticEnrichmentUiState =
@@ -20,4 +22,28 @@ export function formatEnrichmentDuration(durationMs: number): string {
   const minutes = Math.floor(seconds / 60)
   const remainder = seconds % 60
   return remainder > 0 ? `${minutes}m ${remainder}s` : `${minutes}m`
+}
+
+export function applyMetacriticRatingUpdates(
+  library: AggregatedLibrary,
+  updates: MetacriticRatingUpdate[],
+): AggregatedLibrary {
+  if (updates.length === 0) return library
+
+  const updateMap = new Map(updates.map((update) => [update.gameId, update.rating]))
+
+  return {
+    ...library,
+    games: library.games.map((game) => {
+      const rating = updateMap.get(game.id)
+      return rating ? { ...game, metacritic: rating } : game
+    }),
+    results: library.results.map((result) => ({
+      ...result,
+      games: result.games.map((game) => {
+        const rating = updateMap.get(game.id)
+        return rating ? { ...game, metacritic: rating } : game
+      }),
+    })),
+  }
 }

@@ -40,6 +40,9 @@ function startMetacriticEnrichment(library: AggregatedLibrary): void {
       lastProgress = progress
       broadcastToRenderers('games:metacritic-enrichment-progress', progress)
     },
+    onGamesEnriched: (updates) => {
+      broadcastToRenderers('games:metacritic-ratings-updated', { updates })
+    },
   })
     .then(async (enriched) => {
       const durationMs = Math.round(performance.now() - startedAt)
@@ -120,20 +123,27 @@ export function registerGameIpcHandlers(): void {
       const startedAt = performance.now()
 
       broadcastToRenderers('games:metacritic-enrichment-started', { total })
-      broadcastToRenderers('games:metacritic-enrichment-progress', {
-        done: Math.max(1, Math.floor(total / 2)),
-        total,
-        enriched: Math.max(0, Math.floor(enrichedCount / 2)),
-      })
+
+      let done = 0
+      let enrichedSoFar = 0
+      for (const game of enriched.games) {
+        done += 1
+        if (game.metacritic) {
+          enrichedSoFar += 1
+          broadcastToRenderers('games:metacritic-ratings-updated', {
+            updates: [{ gameId: game.id, rating: game.metacritic }],
+          })
+        }
+        broadcastToRenderers('games:metacritic-enrichment-progress', {
+          done,
+          total,
+          enriched: enrichedSoFar,
+        })
+      }
 
       await writeCachedLibrary(enriched)
 
       const durationMs = Math.max(1, Math.round(performance.now() - startedAt))
-      broadcastToRenderers('games:metacritic-enrichment-progress', {
-        done: total,
-        total,
-        enriched: enrichedCount,
-      })
       broadcastToRenderers('games:metacritic-enrichment-finished', {
         done: total,
         total,

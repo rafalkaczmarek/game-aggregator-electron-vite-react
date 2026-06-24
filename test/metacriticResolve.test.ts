@@ -74,6 +74,28 @@ describe('metacritic enrichment resolution', () => {
     expect(result.games[0].metacritic?.metascore).toBe(93)
   })
 
+  it('reports incremental game updates while enriching', async () => {
+    fetchGameDetails.mockResolvedValue({
+      slug: 'hades',
+      title: 'Hades',
+      metascore: 93,
+      userScore: 9,
+      url: 'https://www.metacritic.com/game/hades/',
+    })
+
+    const updates: { gameId: string; rating: { metascore?: number } }[] = []
+    await enrichLibraryWithMetacritic(library([game({ id: 'steam:1', title: 'Hades' })]), {
+      onGamesEnriched: (batch) => updates.push(...batch),
+    })
+
+    expect(updates).toEqual([
+      {
+        gameId: 'steam:1',
+        rating: expect.objectContaining({ metascore: 93, userScore: 9 }),
+      },
+    ])
+  })
+
   it('falls back to search results when slug lookup has no scores', async () => {
     fetchGameDetails
       .mockResolvedValueOnce({ slug: 'elden-ring', title: 'Elden Ring' })

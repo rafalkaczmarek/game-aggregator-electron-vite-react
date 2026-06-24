@@ -150,6 +150,7 @@ function groupGamesByTitle(games: Game[]): Map<string, Game[]> {
 export interface MetacriticEnrichmentOptions {
   onStart?: (total: number) => void
   onProgress?: (progress: MetacriticEnrichmentProgress) => void
+  onGamesEnriched?: (updates: { gameId: string; rating: MetacriticRating }[]) => void
 }
 
 /**
@@ -201,8 +202,13 @@ export async function enrichLibraryWithMetacritic(
       try {
         const { rating, fromNetwork } = await resolveForGame(representative)
         if (rating) {
+          const updates: { gameId: string; rating: MetacriticRating }[] = []
           for (const game of group) {
             ratingsByGameId.set(game.id, rating)
+            updates.push({ gameId: game.id, rating })
+          }
+          if (updates.length > 0) {
+            options?.onGamesEnriched?.(updates)
           }
         }
         if (fromNetwork) await sleep(REQUEST_DELAY_MS)

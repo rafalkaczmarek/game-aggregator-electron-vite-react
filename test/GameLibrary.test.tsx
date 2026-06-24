@@ -54,6 +54,35 @@ describe('GameLibrary', () => {
     expect(scanAll).not.toHaveBeenCalled()
   })
 
+  it('shows metacritic badges as ratings arrive during enrichment', async () => {
+    const library = createMockLibrary()
+    getLibrary.mockResolvedValue(library)
+    render(<GameLibrary />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Your games')).toBeInTheDocument()
+    })
+
+    const ratingsHandler = vi
+      .mocked(window.ipcRenderer.on)
+      .mock.calls.filter(([channel]) => channel === 'games:metacritic-ratings-updated')
+      .at(-1)?.[1]
+
+    expect(ratingsHandler).toBeTypeOf('function')
+    ratingsHandler?.(null, {
+      updates: [
+        {
+          gameId: library.games[0].id,
+          rating: { metascore: 90, userScore: 6.8, fetchedAt: '2024-01-01T00:00:00.000Z' },
+        },
+      ],
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Metascore: 90')).toBeInTheDocument()
+    })
+  })
+
   it('shows metacritic enrichment progress from ipc events', async () => {
     getLibrary.mockResolvedValue(createMockLibrary())
     render(<GameLibrary />)

@@ -4,12 +4,16 @@ import type {
   GamePlatform,
   MetacriticEnrichmentFinished,
   MetacriticEnrichmentProgress,
+  MetacriticRatingUpdate,
 } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import RouteLoadingFallback from '@src/components/app-shell/ui/RouteLoadingFallback'
 import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
 import { groupGamesByTitle } from './lib/grouping'
-import type { MetacriticEnrichmentUiState } from './lib/metacriticEnrichment'
+import {
+  applyMetacriticRatingUpdates,
+  type MetacriticEnrichmentUiState,
+} from './lib/metacriticEnrichment'
 import { sortGroupedGames } from './lib/sort'
 import type { LibrarySort, PlayStatusFilter as PlayStatusFilterValue } from './lib/types'
 import GameGridView from './ui/GameGridView'
@@ -91,6 +95,14 @@ export default function GameLibrary() {
       })
     }
 
+    function onRatingsUpdated(_event: unknown, payload: { updates: MetacriticRatingUpdate[] }) {
+      startTransition(() => {
+        setLibrary((current) =>
+          current ? applyMetacriticRatingUpdates(current, payload.updates) : current,
+        )
+      })
+    }
+
     function onEnrichmentFailed() {
       setMetacriticEnrichment({ status: 'failed' })
     }
@@ -98,12 +110,14 @@ export default function GameLibrary() {
     if (!window.ipcRenderer?.on || !window.ipcRenderer?.off) return
 
     window.ipcRenderer.on('games:library-updated', onLibraryUpdated)
+    window.ipcRenderer.on('games:metacritic-ratings-updated', onRatingsUpdated)
     window.ipcRenderer.on('games:metacritic-enrichment-started', onEnrichmentStarted)
     window.ipcRenderer.on('games:metacritic-enrichment-progress', onEnrichmentProgress)
     window.ipcRenderer.on('games:metacritic-enrichment-finished', onEnrichmentFinished)
     window.ipcRenderer.on('games:metacritic-enrichment-failed', onEnrichmentFailed)
     return () => {
       window.ipcRenderer.off('games:library-updated', onLibraryUpdated)
+      window.ipcRenderer.off('games:metacritic-ratings-updated', onRatingsUpdated)
       window.ipcRenderer.off('games:metacritic-enrichment-started', onEnrichmentStarted)
       window.ipcRenderer.off('games:metacritic-enrichment-progress', onEnrichmentProgress)
       window.ipcRenderer.off('games:metacritic-enrichment-finished', onEnrichmentFinished)

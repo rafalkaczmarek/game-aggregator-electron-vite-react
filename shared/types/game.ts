@@ -56,6 +56,12 @@ export interface MetacriticEnrichmentFinished {
   durationMs: number
 }
 
+/** Incremental rating update pushed while Metacritic enrichment runs. */
+export interface MetacriticRatingUpdate {
+  gameId: string
+  rating: MetacriticRating
+}
+
 export interface GameApi {
   getLibrary: () => Promise<AggregatedLibrary | null>
   scanAll: () => Promise<AggregatedLibrary>

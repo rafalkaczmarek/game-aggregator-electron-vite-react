@@ -23,6 +23,7 @@ const enrichLibraryWithMetacritic = vi.fn<
     options?: {
       onStart?: (total: number) => void
       onProgress?: (progress: { done: number; total: number; enriched: number }) => void
+      onGamesEnriched?: (updates: { gameId: string; rating: { metascore?: number } }[]) => void
     },
   ) => Promise<AggregatedLibrary>
 >()
@@ -147,7 +148,12 @@ describe('ipc handlers', () => {
     }
     readCachedLibrary.mockResolvedValue(library)
     enrichLibraryWithMetacritic.mockImplementation(async (cachedLibrary, options) => {
+      const rating = {
+        metascore: 90,
+        fetchedAt: '2024-01-01T00:00:00.000Z',
+      }
       options?.onStart?.(cachedLibrary.games.length)
+      options?.onGamesEnriched?.([{ gameId: cachedLibrary.games[0].id, rating }])
       options?.onProgress?.({
         done: cachedLibrary.games.length,
         total: cachedLibrary.games.length,
@@ -171,6 +177,9 @@ describe('ipc handlers', () => {
     })
     expect(broadcastToRenderers).toHaveBeenCalledWith('games:metacritic-enrichment-started', {
       total: library.games.length,
+    })
+    expect(broadcastToRenderers).toHaveBeenCalledWith('games:metacritic-ratings-updated', {
+      updates: [{ gameId: library.games[0].id, rating: expect.objectContaining({ metascore: 90 }) }],
     })
     expect(writeCachedLibrary).toHaveBeenCalledWith(enrichedLibrary)
     expect(broadcastToRenderers).toHaveBeenCalledWith('games:library-updated', enrichedLibrary)

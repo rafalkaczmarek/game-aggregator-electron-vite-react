@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   enrichmentPercent,
   formatEnrichmentDuration,
+  applyMetacriticRatingUpdates,
 } from '@src/components/game-library/lib/metacriticEnrichment'
+import { createMockLibrary } from './fixtures/games'
 
 describe('metacriticEnrichment helpers', () => {
   it('computes enrichment percent', () => {
@@ -16,5 +18,22 @@ describe('metacriticEnrichment helpers', () => {
     expect(formatEnrichmentDuration(45_000)).toBe('45s')
     expect(formatEnrichmentDuration(125_000)).toBe('2m 5s')
     expect(formatEnrichmentDuration(120_000)).toBe('2m')
+  })
+
+  it('merges incremental metacritic rating updates into the library', () => {
+    const library = createMockLibrary()
+    const rating = {
+      metascore: 90,
+      userScore: 6.8,
+      fetchedAt: '2024-01-01T00:00:00.000Z',
+    }
+
+    const updated = applyMetacriticRatingUpdates(library, [
+      { gameId: library.games[0].id, rating },
+    ])
+
+    expect(updated.games[0].metacritic).toEqual(rating)
+    expect(updated.results[0].games[0].metacritic).toEqual(rating)
+    expect(updated.games[1].metacritic).toBeUndefined()
   })
 })
