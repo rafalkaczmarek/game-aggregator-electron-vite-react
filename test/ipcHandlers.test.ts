@@ -26,6 +26,7 @@ const enrichLibraryWithMetacritic = vi.fn<
     },
   ) => Promise<AggregatedLibrary>
 >()
+const getRecommendations = vi.fn<() => Promise<unknown>>()
 const broadcastToRenderers = vi.fn<(channel: string, payload: unknown) => void>()
 
 vi.mock('electron', () => ({
@@ -72,6 +73,10 @@ vi.mock('../electron/metadata/metacritic', () => ({
   enrichLibraryWithMetacritic,
 }))
 
+vi.mock('../electron/recommendations', () => ({
+  getRecommendations,
+}))
+
 vi.mock('../electron/main/ipc/broadcast', () => ({
   broadcastToRenderers,
 }))
@@ -96,6 +101,7 @@ describe('ipc handlers', () => {
     updatePsnNpsso.mockReset()
     updatePsnOnlineId.mockReset()
     enrichLibraryWithMetacritic.mockReset()
+    getRecommendations.mockReset()
     broadcastToRenderers.mockReset()
     enrichLibraryWithMetacritic.mockImplementation(async (library, options) => {
       options?.onStart?.(library.games.length)
@@ -125,15 +131,49 @@ describe('ipc handlers', () => {
 
   it('enriches cached library with metacritic in the background', async () => {
     const library = createMockLibrary()
+    const enrichedLibrary = {
+      ...library,
+      games: library.games.map((game, index) =>
+        index === 0
+          ? {
+              ...game,
+              metacritic: {
+                metascore: 90,
+                fetchedAt: '2024-01-01T00:00:00.000Z',
+              },
+            }
+          : game,
+      ),
+    }
     readCachedLibrary.mockResolvedValue(library)
+    enrichLibraryWithMetacritic.mockImplementation(async (cachedLibrary, options) => {
+      options?.onStart?.(cachedLibrary.games.length)
+      options?.onProgress?.({
+        done: cachedLibrary.games.length,
+        total: cachedLibrary.games.length,
+        enriched: 1,
+      })
+      return enrichedLibrary
+    })
 
     await expect(handlers.get('games:enrich-metacritic')!()).resolves.toEqual({ started: true })
     await vi.waitFor(() => {
       expect(enrichLibraryWithMetacritic).toHaveBeenCalledWith(library, expect.any(Object))
     })
+    await vi.waitFor(() => {
+      expect(broadcastToRenderers).toHaveBeenCalledWith(
+        'games:metacritic-enrichment-finished',
+        expect.objectContaining({
+          total: library.games.length,
+          enriched: 1,
+        }),
+      )
+    })
     expect(broadcastToRenderers).toHaveBeenCalledWith('games:metacritic-enrichment-started', {
       total: library.games.length,
     })
+    expect(writeCachedLibrary).toHaveBeenCalledWith(enrichedLibrary)
+    expect(broadcastToRenderers).toHaveBeenCalledWith('games:library-updated', enrichedLibrary)
   })
 
   it('rejects metacritic enrichment when library cache is empty', async () => {
@@ -142,6 +182,35 @@ describe('ipc handlers', () => {
     await expect(handlers.get('games:enrich-metacritic')!()).rejects.toThrow(
       'No library to enrich — scan your libraries first.',
     )
+  })
+
+  it('returns recommendations from cached library', async () => {
+    const library = createMockLibrary()
+    const recommendations = {
+      owned: [{ title: 'Hades', reason: 'Similar roguelike' }],
+      discover: [],
+      errors: [],
+      basedOnPlayedCount: 2,
+    }
+
+    readCachedLibrary.mockResolvedValue(library)
+    getGithubPat.mockResolvedValue('ghp_test')
+    getRecommendations.mockResolvedValue(recommendations)
+
+    await expect(handlers.get('games:get-recommendations')!()).resolves.toEqual(recommendations)
+    expect(getRecommendations).toHaveBeenCalledWith(library, 'ghp_test')
+  })
+
+  it('returns empty recommendations when library cache is missing', async () => {
+    readCachedLibrary.mockResolvedValue(null)
+
+    await expect(handlers.get('games:get-recommendations')!()).resolves.toEqual({
+      owned: [],
+      discover: [],
+      errors: ['Brak zeskanowanej biblioteki — najpierw uruchom skanowanie.'],
+      basedOnPlayedCount: 0,
+    })
+    expect(getRecommendations).not.toHaveBeenCalled()
   })
 
   it('delegates platform scan and rejects unknown platforms', async () => {
@@ -203,6 +272,10 @@ describe('ipc handlers', () => {
 describe('e2e ipc handlers', () => {
   beforeEach(() => {
     handlers.clear()
+    writeCachedLibrary.mockReset()
+    broadcastToRenderers.mockReset()
+    readCachedLibrary.mockReset()
+    enrichLibraryWithMetacritic.mockReset()
     vi.unstubAllEnvs()
     registerGameIpcHandlers()
   })
@@ -225,5 +298,42 @@ describe('e2e ipc handlers', () => {
     const fixture = { purchasedGames: [] }
     await handlers.get('e2e:set-psn-fixture')!(null, fixture)
     expect(setE2ePsnFixture).toHaveBeenCalledWith(fixture)
+  })
+
+  it('simulates metacritic enrichment broadcasts in e2e mode', async () => {
+    vi.stubEnv('E2E_TEST', '1')
+    handlers.clear()
+    registerGameIpcHandlers()
+
+    const library = createMockLibrary()
+    const enrichedLibrary = {
+      ...library,
+      games: library.games.map((game) => ({
+        ...game,
+        metacritic: {
+          metascore: 90,
+          fetchedAt: '2024-01-01T00:00:00.000Z',
+        },
+      })),
+    }
+
+    await handlers.get('e2e:simulate-metacritic-enrichment')!(null, enrichedLibrary)
+
+    expect(writeCachedLibrary).toHaveBeenCalledWith(enrichedLibrary)
+    expect(broadcastToRenderers).toHaveBeenCalledWith(
+      'games:metacritic-enrichment-started',
+      { total: enrichedLibrary.games.length },
+    )
+    expect(broadcastToRenderers).toHaveBeenCalledWith(
+      'games:metacritic-enrichment-finished',
+      expect.objectContaining({
+        total: enrichedLibrary.games.length,
+        enriched: enrichedLibrary.games.length,
+      }),
+    )
+    expect(broadcastToRenderers).toHaveBeenCalledWith(
+      'games:library-updated',
+      enrichedLibrary,
+    )
   })
 })
