@@ -188,6 +188,23 @@ describe('metacritic enrichment resolution', () => {
     expect(result.games.find((entry) => entry.id === 'steam:6')?.metacritic?.metascore).toBe(93)
   })
 
+  it('does not report incremental updates when no rating is found', async () => {
+    fetchGameDetails.mockResolvedValue({
+      slug: 'empty-game',
+      title: 'Empty Game',
+      url: 'https://www.metacritic.com/game/empty-game/',
+    })
+    searchGames.mockResolvedValue([])
+
+    const updates: { gameId: string }[] = []
+    await enrichLibraryWithMetacritic(
+      library([game({ id: 'steam:7', title: 'Empty Game' })]),
+      { onGamesEnriched: (batch) => updates.push(...batch) },
+    )
+
+    expect(updates).toEqual([])
+  })
+
   it('stores negative cache entries when fetched details have no scores', async () => {
     fetchGameDetails.mockResolvedValue({
       slug: 'empty-game',

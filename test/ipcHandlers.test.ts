@@ -334,6 +334,21 @@ describe('e2e ipc handlers', () => {
       { total: enrichedLibrary.games.length },
     )
     expect(broadcastToRenderers).toHaveBeenCalledWith(
+      'games:metacritic-ratings-updated',
+      expect.objectContaining({
+        updates: [
+          expect.objectContaining({
+            gameId: enrichedLibrary.games[0].id,
+            rating: expect.objectContaining({ metascore: 90 }),
+          }),
+        ],
+      }),
+    )
+    expect(broadcastToRenderers).toHaveBeenCalledWith(
+      'games:metacritic-enrichment-progress',
+      expect.objectContaining({ done: 1, total: enrichedLibrary.games.length, enriched: 1 }),
+    )
+    expect(broadcastToRenderers).toHaveBeenCalledWith(
       'games:metacritic-enrichment-finished',
       expect.objectContaining({
         total: enrichedLibrary.games.length,
@@ -344,5 +359,10 @@ describe('e2e ipc handlers', () => {
       'games:library-updated',
       enrichedLibrary,
     )
+
+    const ratingsUpdatedCalls = broadcastToRenderers.mock.calls.filter(
+      ([channel]) => channel === 'games:metacritic-ratings-updated',
+    )
+    expect(ratingsUpdatedCalls).toHaveLength(enrichedLibrary.games.length)
   })
 })

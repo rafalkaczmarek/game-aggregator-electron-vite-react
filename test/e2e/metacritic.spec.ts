@@ -107,6 +107,65 @@ test.describe('metacritic ratings', () => {
     await expect(status.getByText(/Metacritic scores could not be loaded/i)).toBeVisible()
   })
 
+  test('shows metacritic badges incrementally during mock enrichment', async ({ page }) => {
+    const baseLibrary = createMockLibrary()
+    const enrichedLibrary = withMetacriticRatings(baseLibrary)
+
+    await writeLibraryCache(page, baseLibrary)
+    await page.reload()
+    await goToAppPage(page, 'library')
+    await setEnrichMetacriticMock(page, enrichedLibrary)
+
+    const grid = page.getByTestId('game-library-grid')
+    await expect(grid.locator('[aria-label^="Metascore:"]')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Load Metacritic scores' }).click()
+
+    const status = page.getByTestId('metacritic-enrichment-status')
+    await expect(status.getByText(/Fetching Metacritic scores/i)).toBeVisible()
+
+    await expect
+      .poll(async () => grid.locator('[aria-label^="Metascore:"]').count(), { timeout: 5_000 })
+      .toBeGreaterThan(0)
+
+    const midCount = await grid.locator('[aria-label^="Metascore:"]').count()
+    expect(midCount).toBeGreaterThan(0)
+    expect(midCount).toBeLessThan(3)
+
+    await expect(status.getByText(/Metacritic scores updated — 3 games rated/i)).toBeVisible()
+    await expect(grid.locator('[aria-label^="Metascore:"]')).toHaveCount(3)
+  })
+
+  test('shows metacritic badges incrementally in list view during mock enrichment', async ({ page }) => {
+    const baseLibrary = createMockLibrary()
+    const enrichedLibrary = withMetacriticRatings(baseLibrary)
+
+    await writeLibraryCache(page, baseLibrary)
+    await page.reload()
+    await goToAppPage(page, 'library')
+    await setEnrichMetacriticMock(page, enrichedLibrary)
+
+    await page.getByRole('button', { name: 'List view' }).click()
+    const list = page.getByTestId('game-library-list')
+    await expect(list.locator('[aria-label^="Metascore:"]')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Load Metacritic scores' }).click()
+
+    const status = page.getByTestId('metacritic-enrichment-status')
+    await expect(status.getByText(/Fetching Metacritic scores/i)).toBeVisible()
+
+    await expect
+      .poll(async () => list.locator('[aria-label^="Metascore:"]').count(), { timeout: 5_000 })
+      .toBeGreaterThan(0)
+
+    const midCount = await list.locator('[aria-label^="Metascore:"]').count()
+    expect(midCount).toBeGreaterThan(0)
+    expect(midCount).toBeLessThan(3)
+
+    await expect(status.getByText(/Metacritic scores updated — 3 games rated/i)).toBeVisible()
+    await expect(list.locator('[aria-label^="Metascore:"]')).toHaveCount(3)
+  })
+
   test('loads metacritic scores via mock enrichment', async ({ page }) => {
     const baseLibrary = createMockLibrary()
     const enrichedLibrary = withMetacriticRatings(baseLibrary)

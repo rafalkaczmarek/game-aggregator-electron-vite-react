@@ -133,6 +133,7 @@ export function registerGameIpcHandlers(): void {
           broadcastToRenderers('games:metacritic-ratings-updated', {
             updates: [{ gameId: game.id, rating: game.metacritic }],
           })
+          await new Promise((resolve) => setTimeout(resolve, 75))
         }
         broadcastToRenderers('games:metacritic-enrichment-progress', {
           done,
