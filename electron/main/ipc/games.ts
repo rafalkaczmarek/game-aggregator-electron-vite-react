@@ -86,6 +86,36 @@ export function registerGameIpcHandlers(): void {
     ipcMain.handle('e2e:set-psn-fixture', (_event, fixture: PsnE2eFixture | null) => {
       setE2ePsnFixture(fixture)
     })
+    ipcMain.handle('e2e:simulate-metacritic-enrichment', async (_event, enriched: AggregatedLibrary) => {
+      const total = enriched.games.length
+      const enrichedCount = enriched.games.filter((game) => game.metacritic).length
+      const startedAt = performance.now()
+
+      broadcastToRenderers('games:metacritic-enrichment-started', { total })
+      broadcastToRenderers('games:metacritic-enrichment-progress', {
+        done: Math.max(1, Math.floor(total / 2)),
+        total,
+        enriched: Math.max(0, Math.floor(enrichedCount / 2)),
+      })
+
+      await writeCachedLibrary(enriched)
+
+      const durationMs = Math.max(1, Math.round(performance.now() - startedAt))
+      broadcastToRenderers('games:metacritic-enrichment-progress', {
+        done: total,
+        total,
+        enriched: enrichedCount,
+      })
+      broadcastToRenderers('games:metacritic-enrichment-finished', {
+        done: total,
+        total,
+        enriched: enrichedCount,
+        durationMs,
+      })
+      broadcastToRenderers('games:library-updated', enriched)
+
+      return { started: true as const }
+    })
   }
 
   ipcMain.handle('games:scan-all', async () => {

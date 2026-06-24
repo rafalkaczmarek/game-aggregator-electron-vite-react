@@ -158,6 +158,12 @@ export async function setRecommendationsMock(page: Page, result: Recommendations
   }, result)
 }
 
+export async function setEnrichMetacriticMock(page: Page, library: AggregatedLibrary | null) {
+  await page.evaluate((data) => {
+    window.__e2e.setEnrichMetacriticMock(data)
+  }, library)
+}
+
 export async function configureGithubPat(page: Page, token = 'e2e-github-pat') {
   await page.evaluate(async (value) => {
     await window.settingsApi.update({ githubPat: value })

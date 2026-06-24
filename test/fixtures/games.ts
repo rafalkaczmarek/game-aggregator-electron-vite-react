@@ -1,4 +1,4 @@
-import type { AggregatedLibrary, Game } from '@shared/types/game'
+import type { AggregatedLibrary, Game, MetacriticRating } from '@shared/types/game'
 
 export const sampleGames: Game[] = [
   {
@@ -73,6 +73,57 @@ export const duplicateTitleGames: Game[] = [
 
 export function createDuplicateTitleLibrary(): AggregatedLibrary {
   return createMockLibrary(duplicateTitleGames)
+}
+
+const sampleMetacriticRatings: Record<string, MetacriticRating> = {
+  'steam-570': { metascore: 90, userScore: 6.8, platform: 'pc' },
+  'gog-1': { metascore: 86, userScore: 7.2, platform: 'pc' },
+  'epic-2': { metascore: 83, userScore: 8.9, platform: 'pc' },
+}
+
+export function withMetacriticRatings(library: AggregatedLibrary): AggregatedLibrary {
+  const games = library.games.map((game) => ({
+    ...game,
+    metacritic: sampleMetacriticRatings[game.id] ?? game.metacritic,
+  }))
+
+  return {
+    ...library,
+    games,
+    results: library.results.map((result) => ({
+      ...result,
+      games: games.filter((game) => game.platform === result.platform),
+    })),
+  }
+}
+
+export function createMockLibraryWithMetacritic(
+  games: Game[] = sampleGames,
+): AggregatedLibrary {
+  return withMetacriticRatings(createMockLibrary(games))
+}
+
+/** Duplicate title across GOG + Epic with different Metacritic scores (grouping picks best metascore). */
+export function createMetacriticDuplicateTitleLibrary(): AggregatedLibrary {
+  return createMockLibrary([
+    {
+      id: 'gog-plague',
+      platform: 'gog',
+      title: 'A Plague Tale Innocence',
+      installed: false,
+      playtimeMinutes: 120,
+      metacritic: { metascore: 78, userScore: 7.5, platform: 'pc' },
+    },
+    {
+      id: 'epic-plague',
+      platform: 'epic',
+      title: 'A Plague Tale: Innocence',
+      installed: true,
+      playtimeMinutes: 30,
+      coverUrl: 'https://example.com/plague.jpg',
+      metacritic: { metascore: 92, userScore: 8.1, platform: 'pc' },
+    },
+  ])
 }
 
 export function createLargeMockLibrary(count: number): AggregatedLibrary {

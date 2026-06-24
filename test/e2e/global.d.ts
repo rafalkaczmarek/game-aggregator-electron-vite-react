@@ -17,6 +17,9 @@ declare global {
       setRecommendationsMock: (
         result: import('../../shared/types/recommendations').RecommendationsResult | null,
       ) => void
+      setEnrichMetacriticMock: (
+        result: import('../../shared/types/game').AggregatedLibrary | null,
+      ) => void
     }
   }
 }

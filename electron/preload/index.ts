@@ -5,13 +5,15 @@ import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/ty
 import type { PsnE2eFixture } from '../scanners/psn/e2e'
 
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
+let enrichMetacriticImpl: () => Promise<{ started: true }> = () =>
+  ipcRenderer.invoke('games:enrich-metacritic')
 let getRecommendationsImpl: () => Promise<RecommendationsResult> = () =>
   ipcRenderer.invoke('games:get-recommendations')
 
 const gameApi = {
   getLibrary: (): Promise<AggregatedLibrary | null> => ipcRenderer.invoke('games:get-library'),
   scanAll: (): Promise<AggregatedLibrary> => scanAllImpl(),
-  enrichMetacritic: (): Promise<{ started: true }> => ipcRenderer.invoke('games:enrich-metacritic'),
+  enrichMetacritic: (): Promise<{ started: true }> => enrichMetacriticImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
   getRecommendations: (): Promise<RecommendationsResult> => getRecommendationsImpl(),
@@ -47,6 +49,11 @@ contextBridge.exposeInMainWorld('__e2e', {
     getRecommendationsImpl = result
       ? () => Promise.resolve(result)
       : () => ipcRenderer.invoke('games:get-recommendations')
+  },
+  setEnrichMetacriticMock(result: AggregatedLibrary | null) {
+    enrichMetacriticImpl = result
+      ? () => ipcRenderer.invoke('e2e:simulate-metacritic-enrichment', result)
+      : () => ipcRenderer.invoke('games:enrich-metacritic')
   },
 })
 
