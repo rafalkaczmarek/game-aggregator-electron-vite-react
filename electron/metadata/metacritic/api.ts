@@ -24,11 +24,27 @@ const SEARCH_GAME_TYPE_ID = '13'
 
 const REQUEST_TIMEOUT_MS = 8000
 
+let e2eApiCallCount = 0
+
+/** Resets the E2E Metacritic HTTP call counter. */
+export function resetE2eMetacriticApiCallCount(): void {
+  e2eApiCallCount = 0
+}
+
+/** Returns how many Metacritic HTTP requests were made since the last reset (E2E only). */
+export function getE2eMetacriticApiCallCount(): number {
+  return e2eApiCallCount
+}
+
 function getApiKey(): string {
   return process.env.METACRITIC_API_KEY?.trim() || DEFAULT_API_KEY
 }
 
 async function fetchJson<T>(url: string): Promise<T | null> {
+  if (process.env.E2E_TEST === '1') {
+    e2eApiCallCount += 1
+  }
+
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 

@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { MetacriticRating } from '../../../shared/types/game'
 import { createScopedLogger } from '../../lib/logger'
@@ -18,10 +18,12 @@ interface CacheEntry {
   fetchedAt: string
 }
 
-interface CacheFile {
+export interface MetacriticCacheFile {
   version: number
   entries: Record<string, CacheEntry>
 }
+
+type CacheFile = MetacriticCacheFile
 
 const CACHE_VERSION = 1
 
@@ -45,6 +47,9 @@ async function load(): Promise<CacheFile> {
       return memoryCache
     }
     memoryCache = parsed
+    logger.debug('Metacritic cache loaded from disk', {
+      entries: Object.keys(parsed.entries).length,
+    })
     return parsed
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -54,6 +59,9 @@ async function load(): Promise<CacheFile> {
     return memoryCache
   }
 }
+
+let persistTimer: ReturnType<typeof setTimeout> | null = null
+let persistInFlight: Promise<void> | null = null
 
 async function persist(): Promise<void> {
   if (!memoryCache) return
@@ -67,6 +75,26 @@ async function persist(): Promise<void> {
   } catch (error) {
     logger.warn('Failed to persist metacritic cache', error)
   }
+}
+
+function schedulePersist(): void {
+  if (persistTimer) clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    persistTimer = null
+    persistInFlight = persist().finally(() => {
+      persistInFlight = null
+    })
+  }, 250)
+}
+
+/** Awaits any pending debounced write — call after bulk enrichment completes. */
+export async function flushMetacriticCache(): Promise<void> {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+    persistTimer = null
+  }
+  if (persistInFlight) await persistInFlight
+  await persist()
 }
 
 function isFresh(entry: CacheEntry): boolean {
@@ -86,7 +114,22 @@ export async function getCached(key: string): Promise<MetacriticRating | null | 
 export async function setCached(key: string, rating: MetacriticRating | null): Promise<void> {
   const file = await load()
   file.entries[key] = { rating, fetchedAt: new Date().toISOString() }
-  await persist()
+  schedulePersist()
+}
+
+/** Replaces the on-disk cache (used by E2E to seed ratings without network). */
+export async function replaceMetacriticCache(file: MetacriticCacheFile): Promise<void> {
+  memoryCache = {
+    version: CACHE_VERSION,
+    entries: { ...file.entries },
+  }
+  await flushMetacriticCache()
+}
+
+/** Removes the metacritic cache file and in-memory state. */
+export async function clearMetacriticCache(): Promise<void> {
+  memoryCache = null
+  await rm(cacheFilePath(), { force: true })
 }
 
 /** Clears the in-memory cache (useful for tests). */

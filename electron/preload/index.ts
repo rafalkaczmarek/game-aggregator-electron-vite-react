@@ -55,6 +55,20 @@ contextBridge.exposeInMainWorld('__e2e', {
       ? () => ipcRenderer.invoke('e2e:simulate-metacritic-enrichment', result)
       : () => ipcRenderer.invoke('games:enrich-metacritic')
   },
+  setEnrichMetacriticFromCacheMode(enabled: boolean) {
+    enrichMetacriticImpl = enabled
+      ? () => ipcRenderer.invoke('e2e:enrich-metacritic-cached')
+      : () => ipcRenderer.invoke('games:enrich-metacritic')
+  },
+  writeMetacriticCache(cache: unknown) {
+    return ipcRenderer.invoke('e2e:write-metacritic-cache', cache)
+  },
+  clearMetacriticCache() {
+    return ipcRenderer.invoke('e2e:clear-metacritic-cache')
+  },
+  getMetacriticApiCallCount() {
+    return ipcRenderer.invoke('e2e:get-metacritic-api-call-count') as Promise<number>
+  },
 })
 
 // --------- Expose some API to the Renderer process ---------

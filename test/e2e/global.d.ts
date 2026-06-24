@@ -20,6 +20,10 @@ declare global {
       setEnrichMetacriticMock: (
         result: import('../../shared/types/game').AggregatedLibrary | null,
       ) => void
+      setEnrichMetacriticFromCacheMode: (enabled: boolean) => void
+      writeMetacriticCache: (cache: import('../../electron/metadata/metacritic/cache').MetacriticCacheFile) => Promise<void>
+      clearMetacriticCache: () => Promise<void>
+      getMetacriticApiCallCount: () => Promise<number>
     }
   }
 }

@@ -2,18 +2,23 @@
 
 import {
   createMetacriticDuplicateTitleLibrary,
+  createMetacriticCachePayload,
   createMockLibrary,
   createMockLibraryWithMetacritic,
   withMetacriticRatings,
 } from '../fixtures/games'
 import {
   clearLibraryCache,
+  clearMetacriticCache,
   expect,
+  getMetacriticApiCallCount,
   goToAppPage,
+  setEnrichMetacriticFromCacheMode,
   setEnrichMetacriticMock,
   setScanAllMock,
   test,
   writeLibraryCache,
+  writeMetacriticCache,
 } from './fixtures'
 
 test.describe('metacritic ratings', () => {
@@ -28,6 +33,8 @@ test.describe('metacritic ratings', () => {
   test.afterEach(async ({ page }) => {
     await setScanAllMock(page, null)
     await setEnrichMetacriticMock(page, null)
+    await setEnrichMetacriticFromCacheMode(page, false)
+    await clearMetacriticCache(page)
   })
 
   test('displays metacritic badges in grid view', async ({ page }) => {
@@ -120,5 +127,68 @@ test.describe('metacritic ratings', () => {
     const dotaCard = grid.locator('article', { hasText: 'Dota 2' })
     await expect(dotaCard.getByLabel('Metascore: 90')).toBeVisible()
     await expect(dotaCard.getByLabel('User score: 6.8')).toBeVisible()
+  })
+})
+
+test.describe('metacritic cache enrichment', () => {
+  test.beforeEach(async ({ page }) => {
+    await clearLibraryCache(page)
+    await clearMetacriticCache(page)
+    await setScanAllMock(page, null)
+    await setEnrichMetacriticMock(page, null)
+    await setEnrichMetacriticFromCacheMode(page, true)
+    await page.reload()
+    await goToAppPage(page, 'library')
+  })
+
+  test.afterEach(async ({ page }) => {
+    await setScanAllMock(page, null)
+    await setEnrichMetacriticMock(page, null)
+    await setEnrichMetacriticFromCacheMode(page, false)
+    await clearMetacriticCache(page)
+  })
+
+  test('loads metacritic scores from disk cache without calling the api', async ({ page }) => {
+    const baseLibrary = createMockLibrary()
+    await writeLibraryCache(page, baseLibrary)
+    await writeMetacriticCache(page, createMetacriticCachePayload(baseLibrary))
+    await page.reload()
+    await goToAppPage(page, 'library')
+    await setEnrichMetacriticFromCacheMode(page, true)
+
+    const grid = page.getByTestId('game-library-grid')
+    await expect(grid.locator('[aria-label^="Metascore:"]')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Load Metacritic scores' }).click()
+
+    const status = page.getByTestId('metacritic-enrichment-status')
+    await expect(status.getByText(/Metacritic scores updated — 3 games rated/i)).toBeVisible({
+      timeout: 10_000,
+    })
+
+    const dotaCard = grid.locator('article', { hasText: 'Dota 2' })
+    await expect(dotaCard.getByLabel('Metascore: 90')).toBeVisible()
+    await expect(dotaCard.getByLabel('User score: 6.8')).toBeVisible()
+
+    await expect.poll(() => getMetacriticApiCallCount(page)).toBe(0)
+  })
+
+  test('reuses existing library ratings without calling the api', async ({ page }) => {
+    await writeLibraryCache(page, createMockLibraryWithMetacritic())
+    await page.reload()
+    await goToAppPage(page, 'library')
+    await setEnrichMetacriticFromCacheMode(page, true)
+
+    const grid = page.getByTestId('game-library-grid')
+    await expect(grid.locator('[aria-label^="Metascore:"]')).toHaveCount(3)
+
+    await page.getByRole('button', { name: 'Load Metacritic scores' }).click()
+
+    const status = page.getByTestId('metacritic-enrichment-status')
+    await expect(status.getByText(/Metacritic scores updated — 3 games rated/i)).toBeVisible({
+      timeout: 10_000,
+    })
+
+    await expect.poll(() => getMetacriticApiCallCount(page)).toBe(0)
   })
 })

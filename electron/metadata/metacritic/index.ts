@@ -7,7 +7,7 @@ import type {
 } from '../../../shared/types/game'
 import { createScopedLogger } from '../../lib/logger'
 import { fetchGameDetails, searchGames, type SearchHit } from './api'
-import { getCached, setCached } from './cache'
+import { getCached, setCached, flushMetacriticCache } from './cache'
 import { METACRITIC_PLATFORM_CANDIDATES } from './platforms'
 import { cacheKey, slugifyTitle } from './slug'
 
@@ -21,6 +21,16 @@ const REQUEST_DELAY_MS = 250
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function hasUsableMetacritic(rating: MetacriticRating | undefined): rating is MetacriticRating {
+  if (!rating) return false
+  return typeof rating.metascore === 'number' || typeof rating.userScore === 'number'
+}
+
+interface ResolveResult {
+  rating: MetacriticRating | null
+  fromNetwork: boolean
 }
 
 function normalizedTitle(title: string): string {
@@ -55,10 +65,10 @@ function pickBestSearchHit(query: string, hits: SearchHit[], candidate: string):
 async function resolveRating(
   title: string,
   candidate: string,
-): Promise<MetacriticRating | null> {
+): Promise<ResolveResult> {
   const key = cacheKey(title, candidate)
   const cached = await getCached(key)
-  if (cached !== undefined) return cached
+  if (cached !== undefined) return { rating: cached, fromNetwork: false }
 
   const guessSlug = slugifyTitle(title)
   let details = guessSlug ? await fetchGameDetails(guessSlug) : null
@@ -84,7 +94,7 @@ async function resolveRating(
 
   if (!details) {
     await setCached(key, null)
-    return null
+    return { rating: null, fromNetwork: true }
   }
 
   const rating: MetacriticRating = {
@@ -97,22 +107,26 @@ async function resolveRating(
 
   if (rating.metascore === undefined && rating.userScore === undefined) {
     await setCached(key, null)
-    return null
+    return { rating: null, fromNetwork: true }
   }
 
   await setCached(key, rating)
-  return rating
+  return { rating, fromNetwork: true }
 }
 
 /** Tries each platform candidate in order; returns the first non-null rating. */
-async function resolveForGame(game: Game): Promise<MetacriticRating | null> {
+async function resolveForGame(game: Game): Promise<ResolveResult> {
+  if (hasUsableMetacritic(game.metacritic)) {
+    return { rating: game.metacritic, fromNetwork: false }
+  }
+
   const candidates = METACRITIC_PLATFORM_CANDIDATES[game.platform]
   for (const candidate of candidates) {
-    const rating = await resolveRating(game.title, candidate)
-    if (rating) return rating
-    await sleep(REQUEST_DELAY_MS)
+    const result = await resolveRating(game.title, candidate)
+    if (result.rating) return result
+    if (result.fromNetwork) await sleep(REQUEST_DELAY_MS)
   }
-  return null
+  return { rating: null, fromNetwork: false }
 }
 
 /**
@@ -149,10 +163,23 @@ export async function enrichLibraryWithMetacritic(
 ): Promise<AggregatedLibrary> {
   const startedAt = performance.now()
   const groups = [...groupGamesByTitle(library.games).values()]
-  const total = groups.length
   const ratingsByGameId = new Map<string, MetacriticRating>()
 
+  for (const game of library.games) {
+    if (hasUsableMetacritic(game.metacritic)) {
+      ratingsByGameId.set(game.id, game.metacritic)
+    }
+  }
+
+  const groupsToResolve = groups.filter((group) => !hasUsableMetacritic(group[0].metacritic))
+  const total = groupsToResolve.length
+
   options?.onStart?.(total)
+
+  if (total === 0) {
+    options?.onProgress?.({ done: 0, total: 0, enriched: ratingsByGameId.size })
+    return { ...library }
+  }
 
   let workerErrors = 0
   let done = 0
@@ -167,17 +194,18 @@ export async function enrichLibraryWithMetacritic(
   }
 
   async function worker(): Promise<void> {
-    while (cursor < groups.length) {
+    while (cursor < groupsToResolve.length) {
       const index = cursor++
-      const group = groups[index]
+      const group = groupsToResolve[index]
       const representative = group[0]
       try {
-        const rating = await resolveForGame(representative)
+        const { rating, fromNetwork } = await resolveForGame(representative)
         if (rating) {
           for (const game of group) {
             ratingsByGameId.set(game.id, rating)
           }
         }
+        if (fromNetwork) await sleep(REQUEST_DELAY_MS)
       } catch (error) {
         workerErrors += 1
         logger.debug('Worker error while resolving rating', {
@@ -189,11 +217,11 @@ export async function enrichLibraryWithMetacritic(
         done += 1
         reportProgress()
       }
-      await sleep(REQUEST_DELAY_MS)
     }
   }
 
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()))
+  await flushMetacriticCache()
 
   const enrichedGames = library.games.map((game) => {
     const rating = ratingsByGameId.get(game.id)

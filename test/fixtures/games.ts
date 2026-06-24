@@ -1,4 +1,7 @@
 import type { AggregatedLibrary, Game, MetacriticRating } from '@shared/types/game'
+import { METACRITIC_PLATFORM_CANDIDATES } from '../../electron/metadata/metacritic/platforms'
+import type { MetacriticCacheFile } from '../../electron/metadata/metacritic/cache'
+import { cacheKey } from '../../electron/metadata/metacritic/slug'
 
 export const sampleGames: Game[] = [
   {
@@ -137,4 +140,27 @@ export function createLargeMockLibrary(count: number): AggregatedLibrary {
   }))
 
   return createMockLibrary(games)
+}
+
+/** Builds a metacritic-cache.json payload for the given library (E2E / unit tests). */
+export function createMetacriticCachePayload(
+  library: AggregatedLibrary,
+  ratingsByGameId: Record<string, MetacriticRating> = sampleMetacriticRatings,
+): MetacriticCacheFile {
+  const fetchedAt = '2026-06-24T12:00:00.000Z'
+  const entries: MetacriticCacheFile['entries'] = {}
+
+  for (const game of library.games) {
+    const rating = ratingsByGameId[game.id] ?? game.metacritic
+    if (!rating) continue
+
+    const candidates = METACRITIC_PLATFORM_CANDIDATES[game.platform]
+    const candidate = rating.platform ?? candidates[0]
+    entries[cacheKey(game.title, candidate)] = {
+      rating: { ...rating, fetchedAt },
+      fetchedAt,
+    }
+  }
+
+  return { version: 1, entries }
 }

@@ -164,6 +164,27 @@ export async function setEnrichMetacriticMock(page: Page, library: AggregatedLib
   }, library)
 }
 
+export async function setEnrichMetacriticFromCacheMode(page: Page, enabled: boolean) {
+  await page.evaluate((value) => {
+    window.__e2e.setEnrichMetacriticFromCacheMode(value)
+  }, enabled)
+}
+
+export async function writeMetacriticCache(
+  page: Page,
+  cache: import('../../electron/metadata/metacritic/cache').MetacriticCacheFile,
+) {
+  await page.evaluate((data) => window.__e2e.writeMetacriticCache(data), cache)
+}
+
+export async function clearMetacriticCache(page: Page) {
+  await page.evaluate(() => window.__e2e.clearMetacriticCache())
+}
+
+export async function getMetacriticApiCallCount(page: Page): Promise<number> {
+  return page.evaluate(() => window.__e2e.getMetacriticApiCallCount())
+}
+
 export async function configureGithubPat(page: Page, token = 'e2e-github-pat') {
   await page.evaluate(async (value) => {
     await window.settingsApi.update({ githubPat: value })
