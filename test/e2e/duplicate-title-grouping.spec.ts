@@ -21,7 +21,7 @@ test.describe('duplicate title grouping', () => {
     await expect(page.getByText('Your games')).toBeVisible()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(2)
+    await expect(grid.locator('article')).toHaveCount(2)
     await expect(page.getByText('A Plague Tale: Innocence')).toBeVisible()
     await expect(grid.getByText('GOG')).toBeVisible()
     await expect(grid.getByText('Epic')).toBeVisible()
@@ -67,7 +67,7 @@ test.describe('duplicate title grouping', () => {
     await page.click('button:has-text("Scan libraries")')
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(1)
+    await expect(grid.locator('article')).toHaveCount(1)
     await expect(page.getByText('Call of Duty: Modern Warfare')).toBeVisible()
     await expect(grid.getByText('Steam')).toBeVisible()
     await expect(grid.getByText('GOG')).toBeVisible()

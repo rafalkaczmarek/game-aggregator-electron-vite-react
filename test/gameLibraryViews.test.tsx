@@ -26,7 +26,7 @@ describe('game library views', () => {
     render(<GameGridView games={groupedSampleGames} />)
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(grid).getAllByRole('article')).toHaveLength(3)
     expect(within(grid).getByText('Alan Wake')).toBeInTheDocument()
     expect(within(grid).getAllByText('Installed')).toHaveLength(2)
     expect(within(grid).getByText('45 min')).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe('game library views', () => {
     render(<GameGridView games={groupGamesByTitle(duplicateGames)} />)
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(grid).getAllByRole('article')).toHaveLength(1)
     expect(within(grid).getByText('GOG')).toBeInTheDocument()
     expect(within(grid).getByText('Epic')).toBeInTheDocument()
     expect(within(grid).getByText('2.5 hrs')).toBeInTheDocument()

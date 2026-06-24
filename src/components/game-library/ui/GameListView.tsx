@@ -1,40 +1,40 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import GameListRow from './GameListRow'
 import { type GroupedGame } from '../lib/types'
-import { useScrollContainerMetrics } from '../hooks/useScrollContainerMetrics'
-import { getVisibleGridRange, LIBRARY_SCROLL_HEIGHT_CLASS, LIST_ROW_HEIGHT } from '../lib/virtualScroll'
+import { observeLibraryScrollRect } from '../lib/observeLibraryScrollRect'
+import { LIBRARY_SCROLL_HEIGHT_CLASS, LIST_ROW_HEIGHT } from '../lib/virtualScroll'
 
 export default function GameListView({ games }: { games: GroupedGame[] }) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { height, scrollTop } = useScrollContainerMetrics(scrollRef)
 
-  const { startIndex, endIndex, totalHeight } = useMemo(
-    () => getVisibleGridRange(scrollTop, height, games.length, 1, LIST_ROW_HEIGHT),
-    [scrollTop, height, games.length],
-  )
-
-  const visibleGames = games.slice(startIndex, endIndex)
+  const virtualizer = useVirtualizer({
+    count: games.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => LIST_ROW_HEIGHT,
+    overscan: 5,
+    useFlushSync: false,
+    directDomUpdates: true,
+    observeElementRect: observeLibraryScrollRect,
+  })
 
   return (
     <div
       ref={scrollRef}
       data-testid='game-library-list'
-      className={`${LIBRARY_SCROLL_HEIGHT_CLASS} overflow-y-auto rounded-2xl border border-slate-200`}
+      className={`${LIBRARY_SCROLL_HEIGHT_CLASS} overflow-y-auto overscroll-y-contain rounded-2xl border border-slate-200`}
     >
-      <ul className='relative divide-y divide-slate-100' style={{ height: `${totalHeight}px` }}>
-        {visibleGames.map((game, offset) => {
-          const index = startIndex + offset
-
-          return (
-            <li
-              key={game.key}
-              className='absolute left-0 top-0 w-full'
-              style={{ transform: `translateY(${index * LIST_ROW_HEIGHT}px)` }}
-            >
-              <GameListRow game={game} />
-            </li>
-          )
-        })}
+      <ul ref={virtualizer.containerRef} className='relative divide-y divide-slate-100'>
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <li
+            key={virtualItem.key}
+            ref={virtualizer.measureElement}
+            data-index={virtualItem.index}
+            className='absolute left-0 top-0 w-full'
+          >
+            <GameListRow game={games[virtualItem.index]} />
+          </li>
+        ))}
       </ul>
     </div>
   )

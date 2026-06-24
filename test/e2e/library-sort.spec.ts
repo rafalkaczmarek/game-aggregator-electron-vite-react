@@ -6,7 +6,8 @@ import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 async function getVisibleGameTitles(page: Page, view: 'grid' | 'list' = 'grid') {
   const testId = view === 'grid' ? 'game-library-grid' : 'game-library-list'
-  return page.getByTestId(testId).locator('li p.font-medium').allTextContents()
+  const titleSelector = view === 'grid' ? 'article p.font-medium' : 'li p.font-medium'
+  return page.getByTestId(testId).locator(titleSelector).allTextContents()
 }
 
 test.describe('library sort', () => {

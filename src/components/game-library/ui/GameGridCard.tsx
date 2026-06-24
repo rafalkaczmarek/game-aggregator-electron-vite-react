@@ -19,7 +19,7 @@ function GameGridCard({ game }: { game: GroupedGame }) {
 
   return (
     <article
-      className='group mx-auto overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md'
+      className='group mx-auto overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-cyan-200 hover:shadow-md'
       style={{ width: `${GRID_CARD_WIDTH_SCALE * 100}%` }}
     >
       <div className='relative aspect-[2/3] overflow-hidden bg-slate-100'>

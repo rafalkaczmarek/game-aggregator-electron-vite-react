@@ -22,7 +22,7 @@ test.describe('play status filter', () => {
     await page.click('button:has-text("Scan libraries")')
     await expect(page.getByTestId('play-status-filter')).toBeVisible()
     await expect(page.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByTestId('game-library-grid').locator('li')).toHaveCount(3)
+    await expect(page.getByTestId('game-library-grid').locator('article')).toHaveCount(3)
     await expect(page.getByText('(filtered)')).toHaveCount(0)
   })
 
@@ -40,7 +40,7 @@ test.describe('play status filter', () => {
     await expect(page.getByText(/Last scan:.*— 2 games \(filtered\)/)).toBeVisible()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(2)
+    await expect(grid.locator('article')).toHaveCount(2)
     await expect(grid.getByText('Alan Wake')).toBeVisible()
     await expect(grid.getByText('Dota 2')).toBeVisible()
     await expect(grid.getByText('Cyberpunk 2077')).toHaveCount(0)
@@ -60,7 +60,7 @@ test.describe('play status filter', () => {
     await expect(page.getByText(/Last scan:.*— 1 games \(filtered\)/)).toBeVisible()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(1)
+    await expect(grid.locator('article')).toHaveCount(1)
     await expect(grid.getByText('Cyberpunk 2077')).toBeVisible()
     await expect(grid.getByText('Alan Wake')).toHaveCount(0)
     await expect(grid.getByText('Dota 2')).toHaveCount(0)
@@ -71,11 +71,11 @@ test.describe('play status filter', () => {
 
     await page.click('button:has-text("Scan libraries")')
     await page.getByRole('button', { name: 'Played', exact: true }).click()
-    await expect(page.getByTestId('game-library-grid').locator('li')).toHaveCount(2)
+    await expect(page.getByTestId('game-library-grid').locator('article')).toHaveCount(2)
 
     await page.getByRole('button', { name: 'All' }).click()
     await expect(page.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByTestId('game-library-grid').locator('li')).toHaveCount(3)
+    await expect(page.getByTestId('game-library-grid').locator('article')).toHaveCount(3)
     await expect(page.getByText('(filtered)')).toHaveCount(0)
   })
 
@@ -104,7 +104,7 @@ test.describe('play status filter', () => {
     await page.getByRole('button', { name: 'Played', exact: true }).click()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(1)
+    await expect(grid.locator('article')).toHaveCount(1)
     await expect(grid.getByText('Dota 2')).toBeVisible()
     await expect(page.getByText('(filtered)')).toBeVisible()
   })
@@ -132,7 +132,7 @@ test.describe('play status filter', () => {
     await page.getByRole('button', { name: 'Played', exact: true }).click()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(2)
+    await expect(grid.locator('article')).toHaveCount(2)
     await expect(page.getByText('A Plague Tale: Innocence')).toBeVisible()
     await expect(page.getByText('Dota 2')).toBeVisible()
     await expect(page.getByText('2.5 hrs')).toBeVisible()
@@ -167,7 +167,7 @@ test.describe('play status filter', () => {
     await page.getByRole('button', { name: 'Not played' }).click()
 
     const grid = page.getByTestId('game-library-grid')
-    await expect(grid.locator('li')).toHaveCount(1)
+    await expect(grid.locator('article')).toHaveCount(1)
     await expect(grid.getByText('Idle Game')).toBeVisible()
     await expect(grid.getByText('Played Game')).toHaveCount(0)
   })

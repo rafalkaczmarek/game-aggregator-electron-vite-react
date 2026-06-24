@@ -4,7 +4,7 @@ import type { Game } from '@shared/types/game'
 interface GameCoverProps {
   game: Game
   className?: string
-  /** Blurred backdrop + uncropped foreground — fills the box without clipping the art. */
+  /** When true, image fills the box with object-contain (no blurred duplicate layer). */
   fill?: boolean
 }
 
@@ -51,20 +51,13 @@ export default function GameCover({ game, className = '', fill = false }: GameCo
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
-      <img
-        src={game.coverUrl}
-        alt=''
-        aria-hidden
-        className='absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-lg saturate-125'
-      />
-      <img
-        src={game.coverUrl}
-        alt=''
-        loading='lazy'
-        onError={() => setFailed(true)}
-        className='relative z-10 h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]'
-      />
-    </div>
+    <img
+      src={game.coverUrl}
+      alt=''
+      loading='lazy'
+      decoding='async'
+      onError={() => setFailed(true)}
+      className={`bg-slate-100 object-contain ${className}`}
+    />
   )
 }

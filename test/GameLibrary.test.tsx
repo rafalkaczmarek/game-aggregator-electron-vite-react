@@ -106,7 +106,7 @@ describe('GameLibrary', () => {
 
     const grid = screen.getByTestId('game-library-grid')
     const titles = within(grid)
-      .getAllByRole('listitem')
+      .getAllByRole('article')
       .map((item) => item.textContent)
 
     expect(titles[0]).toContain('Alan Wake')
@@ -165,7 +165,7 @@ describe('GameLibrary', () => {
     })
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(grid).getAllByRole('article')).toHaveLength(2)
     expect(within(grid).getByText('A Plague Tale: Innocence')).toBeInTheDocument()
     expect(within(grid).getByText('GOG')).toBeInTheDocument()
     expect(within(grid).getByText('Epic')).toBeInTheDocument()
@@ -202,7 +202,7 @@ describe('GameLibrary', () => {
     await user.click(screen.getByRole('button', { name: 'Steam' }))
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(grid).getAllByRole('article')).toHaveLength(1)
     expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
     expect(screen.getByText(/\(filtered\)/i)).toBeInTheDocument()
   })
@@ -219,7 +219,7 @@ describe('GameLibrary', () => {
       expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
     })
 
-    expect(within(screen.getByTestId('game-library-grid')).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(screen.getByTestId('game-library-grid')).getAllByRole('article')).toHaveLength(3)
     expect(screen.queryByText(/\(filtered\)/i)).not.toBeInTheDocument()
   })
 
@@ -256,7 +256,7 @@ describe('GameLibrary', () => {
     await user.click(screen.getByRole('button', { name: 'Not played' }))
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(grid).getAllByRole('article')).toHaveLength(1)
     expect(within(grid).getByText('Cyberpunk 2077')).toBeInTheDocument()
     expect(screen.getByText(/\(filtered\)/i)).toBeInTheDocument()
   })
@@ -276,7 +276,7 @@ describe('GameLibrary', () => {
     await user.click(screen.getByRole('button', { name: 'Played' }))
 
     const grid = screen.getByTestId('game-library-grid')
-    expect(within(grid).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(grid).getAllByRole('article')).toHaveLength(2)
     expect(within(grid).getByText('Alan Wake')).toBeInTheDocument()
     expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
     expect(within(grid).queryByText('Cyberpunk 2077')).not.toBeInTheDocument()
