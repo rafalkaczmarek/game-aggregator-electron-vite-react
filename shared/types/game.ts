@@ -41,9 +41,25 @@ export interface AggregatedLibrary {
   results: ScanResult[]
 }
 
+/** Progress payload pushed from main process while Metacritic enrichment runs. */
+export interface MetacriticEnrichmentProgress {
+  done: number
+  total: number
+  enriched: number
+}
+
+/** Summary payload when Metacritic enrichment completes. */
+export interface MetacriticEnrichmentFinished {
+  done: number
+  total: number
+  enriched: number
+  durationMs: number
+}
+
 export interface GameApi {
   getLibrary: () => Promise<AggregatedLibrary | null>
   scanAll: () => Promise<AggregatedLibrary>
+  enrichMetacritic: () => Promise<{ started: true }>
   scanPlatform: (platform: GamePlatform) => Promise<ScanResult>
   getRecommendations: () => Promise<import('./recommendations').RecommendationsResult>
 }

@@ -1,13 +1,20 @@
 import { Profiler, startTransition, useEffect, useMemo, useState } from 'react'
-import type { AggregatedLibrary, GamePlatform } from '@shared/types/game'
+import type {
+  AggregatedLibrary,
+  GamePlatform,
+  MetacriticEnrichmentFinished,
+  MetacriticEnrichmentProgress,
+} from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import RouteLoadingFallback from '@src/components/app-shell/ui/RouteLoadingFallback'
 import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
 import { groupGamesByTitle } from './lib/grouping'
+import type { MetacriticEnrichmentUiState } from './lib/metacriticEnrichment'
 import { sortGroupedGames } from './lib/sort'
 import type { LibrarySort, PlayStatusFilter as PlayStatusFilterValue } from './lib/types'
 import GameGridView from './ui/GameGridView'
 import GameListView from './ui/GameListView'
+import MetacriticEnrichmentStatus from './ui/MetacriticEnrichmentStatus'
 import PlatformFilter from './ui/PlatformFilter'
 import LibrarySortControl from './ui/LibrarySortControl'
 import PlayStatusFilter from './ui/PlayStatusFilter'
@@ -18,6 +25,8 @@ import {
   measureGameLibrarySyncWork,
 } from './lib/gameLibraryProfiler'
 
+const FINISHED_STATUS_DISMISS_MS = 8000
+
 export default function GameLibrary() {
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -26,6 +35,9 @@ export default function GameLibrary() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
   const [playStatus, setPlayStatus] = useState<PlayStatusFilterValue>('all')
   const [librarySort, setLibrarySort] = useState<LibrarySort>('title')
+  const [metacriticEnrichment, setMetacriticEnrichment] = useState<MetacriticEnrichmentUiState>({
+    status: 'idle',
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -49,6 +61,68 @@ export default function GameLibrary() {
     }
   }, [])
 
+  useEffect(() => {
+    function onLibraryUpdated(_event: unknown, updated: AggregatedLibrary) {
+      startTransition(() => {
+        setLibrary(updated)
+      })
+    }
+
+    function onEnrichmentStarted(_event: unknown, payload: { total: number }) {
+      setMetacriticEnrichment({
+        status: 'running',
+        done: 0,
+        total: payload.total,
+        enriched: 0,
+      })
+    }
+
+    function onEnrichmentProgress(_event: unknown, progress: MetacriticEnrichmentProgress) {
+      setMetacriticEnrichment({
+        status: 'running',
+        ...progress,
+      })
+    }
+
+    function onEnrichmentFinished(_event: unknown, summary: MetacriticEnrichmentFinished) {
+      setMetacriticEnrichment({
+        status: 'finished',
+        ...summary,
+      })
+    }
+
+    function onEnrichmentFailed() {
+      setMetacriticEnrichment({ status: 'failed' })
+    }
+
+    if (!window.ipcRenderer?.on || !window.ipcRenderer?.off) return
+
+    window.ipcRenderer.on('games:library-updated', onLibraryUpdated)
+    window.ipcRenderer.on('games:metacritic-enrichment-started', onEnrichmentStarted)
+    window.ipcRenderer.on('games:metacritic-enrichment-progress', onEnrichmentProgress)
+    window.ipcRenderer.on('games:metacritic-enrichment-finished', onEnrichmentFinished)
+    window.ipcRenderer.on('games:metacritic-enrichment-failed', onEnrichmentFailed)
+    return () => {
+      window.ipcRenderer.off('games:library-updated', onLibraryUpdated)
+      window.ipcRenderer.off('games:metacritic-enrichment-started', onEnrichmentStarted)
+      window.ipcRenderer.off('games:metacritic-enrichment-progress', onEnrichmentProgress)
+      window.ipcRenderer.off('games:metacritic-enrichment-finished', onEnrichmentFinished)
+      window.ipcRenderer.off('games:metacritic-enrichment-failed', onEnrichmentFailed)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (metacriticEnrichment.status !== 'finished') return
+
+    const timer = window.setTimeout(() => {
+      setMetacriticEnrichment({ status: 'idle' })
+    }, FINISHED_STATUS_DISMISS_MS)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [metacriticEnrichment])
+
   async function handleScan() {
     setLoading(true)
     try {
@@ -60,6 +134,17 @@ export default function GameLibrary() {
       setLoading(false)
     }
   }
+
+  async function handleEnrichMetacritic() {
+    try {
+      await window.gameApi.enrichMetacritic()
+    } catch {
+      setMetacriticEnrichment({ status: 'failed' })
+    }
+  }
+
+  const metacriticBusy = metacriticEnrichment.status === 'running'
+  const canEnrichMetacritic = Boolean(library && library.games.length > 0)
 
   const groupedGames = useMemo(
     () =>
@@ -88,14 +173,24 @@ export default function GameLibrary() {
             in Settings for full library metadata.
           </p>
         </div>
-        <button
-          type='button'
-          onClick={handleScan}
-          disabled={loading}
-          className='inline-flex items-center justify-center rounded-2xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-600 disabled:opacity-60'
-        >
-          {loading ? 'Scanning…' : 'Scan libraries'}
-        </button>
+        <div className='flex flex-wrap items-center gap-3'>
+          <button
+            type='button'
+            onClick={handleEnrichMetacritic}
+            disabled={!canEnrichMetacritic || loading || metacriticBusy}
+            className='inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-800 transition hover:bg-slate-50 disabled:opacity-60'
+          >
+            {metacriticBusy ? 'Loading Metacritic…' : 'Load Metacritic scores'}
+          </button>
+          <button
+            type='button'
+            onClick={handleScan}
+            disabled={loading || metacriticBusy}
+            className='inline-flex items-center justify-center rounded-2xl bg-cyan-500 px-5 py-3 font-semibold text-white transition hover:bg-cyan-600 disabled:opacity-60'
+          >
+            {loading ? 'Scanning…' : 'Scan libraries'}
+          </button>
+        </div>
       </div>
 
       {initialLoading ? (
@@ -105,6 +200,10 @@ export default function GameLibrary() {
       ) : (
         library && (
         <div className='mt-6 space-y-4'>
+          <MetacriticEnrichmentStatus
+            state={metacriticEnrichment}
+            onDismiss={() => setMetacriticEnrichment({ status: 'idle' })}
+          />
           <p className='text-sm text-slate-500'>
             Last scan: {new Date(library.scannedAt).toLocaleString()} — {groupedGames.length} games
             {isFiltered && <span className='text-slate-400'> (filtered)</span>}

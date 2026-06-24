@@ -8,20 +8,27 @@ import { createMockLibrary, createDuplicateTitleLibrary } from './fixtures/games
 async function waitForLibraryShell() {
   await waitFor(() => {
     expect(screen.getByRole('button', { name: 'Scan libraries' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Load Metacritic scores' })).toBeInTheDocument()
   })
 }
 
 describe('GameLibrary', () => {
   const scanAll = vi.fn<GameApi['scanAll']>()
+  const enrichMetacritic = vi.fn<GameApi['enrichMetacritic']>()
   const getLibrary = vi.fn<GameApi['getLibrary']>()
 
   beforeEach(() => {
     scanAll.mockReset()
+    enrichMetacritic.mockReset()
+    enrichMetacritic.mockResolvedValue({ started: true })
     getLibrary.mockReset()
     getLibrary.mockResolvedValue(null)
+    vi.mocked(window.ipcRenderer.on).mockClear()
+    vi.mocked(window.ipcRenderer.off).mockClear()
     window.gameApi = {
       getLibrary,
       scanAll,
+      enrichMetacritic,
       scanPlatform: vi.fn(),
       getRecommendations: vi.fn<GameApi['getRecommendations']>().mockResolvedValue({
         owned: [],
@@ -30,6 +37,46 @@ describe('GameLibrary', () => {
         basedOnPlayedCount: 0,
       }),
     }
+  })
+
+  it('starts metacritic enrichment from a separate button', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await waitFor(() => {
+      expect(screen.getByText('Your games')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Load Metacritic scores' }))
+
+    expect(enrichMetacritic).toHaveBeenCalledTimes(1)
+    expect(scanAll).not.toHaveBeenCalled()
+  })
+
+  it('shows metacritic enrichment progress from ipc events', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+    render(<GameLibrary />)
+
+    await waitFor(() => {
+      expect(window.ipcRenderer.on).toHaveBeenCalledWith(
+        'games:metacritic-enrichment-progress',
+        expect.any(Function),
+      )
+    })
+
+    const progressHandler = vi
+      .mocked(window.ipcRenderer.on)
+      .mock.calls.filter(([channel]) => channel === 'games:metacritic-enrichment-progress')
+      .at(-1)?.[1]
+
+    expect(progressHandler).toBeTypeOf('function')
+    progressHandler?.(null, { done: 5, total: 20, enriched: 3 })
+
+    await waitFor(() => {
+      expect(screen.getByText('Fetching Metacritic scores…')).toBeInTheDocument()
+    })
+    expect(screen.getByText('5/20 (25%)')).toBeInTheDocument()
   })
 
   it('loads cached library on mount', async () => {

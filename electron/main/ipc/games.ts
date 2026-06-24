@@ -1,15 +1,64 @@
 import { ipcMain } from 'electron'
-import type { AggregatedLibrary, GamePlatform } from '../../../shared/types/game'
+import type { AggregatedLibrary, GamePlatform, MetacriticEnrichmentProgress } from '../../../shared/types/game'
 import { GAME_PLATFORMS } from '../../../shared/types/game'
 import { createScopedLogger } from '../../lib/logger'
+import { enrichLibraryWithMetacritic } from '../../metadata/metacritic'
 import { getRecommendations } from '../../recommendations'
 import { getGithubPat } from '../settings/store'
 import { clearCachedLibrary, readCachedLibrary, writeCachedLibrary } from '../library/store'
-import { scanAllGames, scanPlatform } from '../../scanners'
+import { scanAllGamesWithoutMetacritic, scanPlatform } from '../../scanners'
 import { setE2eGalaxyDbPath } from '../../scanners/gog/paths'
 import { setE2ePsnFixture, type PsnE2eFixture } from '../../scanners/psn/e2e'
+import { broadcastToRenderers } from './broadcast'
 
 const logger = createScopedLogger('ipc:games')
+
+let metacriticEnrichmentInProgress = false
+
+function startMetacriticEnrichment(library: AggregatedLibrary): void {
+  metacriticEnrichmentInProgress = true
+  const startedAt = performance.now()
+  let enrichmentTotal = 0
+  let lastProgress: MetacriticEnrichmentProgress = { done: 0, total: 0, enriched: 0 }
+
+  void enrichLibraryWithMetacritic(library, {
+    onStart: (total) => {
+      enrichmentTotal = total
+      lastProgress = { done: 0, total, enriched: 0 }
+      broadcastToRenderers('games:metacritic-enrichment-started', { total })
+    },
+    onProgress: (progress) => {
+      lastProgress = progress
+      broadcastToRenderers('games:metacritic-enrichment-progress', progress)
+    },
+  })
+    .then(async (enriched) => {
+      const durationMs = Math.round(performance.now() - startedAt)
+      const enrichedCount = enriched.games.filter((game) => game.metacritic).length
+      const total = enrichmentTotal || lastProgress.total
+
+      await writeCachedLibrary(enriched)
+      broadcastToRenderers('games:metacritic-enrichment-finished', {
+        done: lastProgress.done || total,
+        total,
+        enriched: enrichedCount,
+        durationMs,
+      })
+      broadcastToRenderers('games:library-updated', enriched)
+      logger.info('games:enrich-metacritic finished', {
+        gameCount: enriched.games.length,
+        enriched: enrichedCount,
+        durationMs,
+      })
+    })
+    .catch((error) => {
+      broadcastToRenderers('games:metacritic-enrichment-failed', {})
+      logger.warn('games:enrich-metacritic failed', error)
+    })
+    .finally(() => {
+      metacriticEnrichmentInProgress = false
+    })
+}
 
 export function registerGameIpcHandlers(): void {
   ipcMain.handle('games:get-library', async () => {
@@ -41,10 +90,30 @@ export function registerGameIpcHandlers(): void {
 
   ipcMain.handle('games:scan-all', async () => {
     logger.info('games:scan-all invoked')
-    const library = await scanAllGames()
+    const library = await scanAllGamesWithoutMetacritic()
     await writeCachedLibrary(library)
     logger.info('games:scan-all finished', { gameCount: library.games.length })
+
     return library
+  })
+
+  ipcMain.handle('games:enrich-metacritic', async () => {
+    if (process.env.E2E_TEST === '1') {
+      throw new Error('Metacritic enrichment is disabled in E2E tests')
+    }
+
+    if (metacriticEnrichmentInProgress) {
+      throw new Error('Metacritic enrichment is already running')
+    }
+
+    const library = await readCachedLibrary()
+    if (!library || library.games.length === 0) {
+      throw new Error('No library to enrich — scan your libraries first.')
+    }
+
+    logger.info('games:enrich-metacritic invoked', { gameCount: library.games.length })
+    startMetacriticEnrichment(library)
+    return { started: true as const }
   })
 
   ipcMain.handle('games:scan-platform', (_event, platform: GamePlatform) => {

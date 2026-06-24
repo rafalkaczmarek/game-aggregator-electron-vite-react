@@ -82,6 +82,14 @@ function shouldEnrichWithMetacritic(): boolean {
   return process.env.E2E_TEST !== '1'
 }
 
+/**
+ * Runs the full library scan without any external metadata enrichment.
+ * Used by IPC to keep "Scan libraries" responsive (Metacritic is fetched in background).
+ */
+export async function scanAllGamesWithoutMetacritic(): Promise<AggregatedLibrary> {
+  return scanAllGamesWithoutEnrichment()
+}
+
 export async function scanAllGames(): Promise<AggregatedLibrary> {
   logger.info('Full library scan started')
 

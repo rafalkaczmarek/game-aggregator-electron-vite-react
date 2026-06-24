@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 const LIBRARY_SCROLL_TEST_ID = /^game-library-(grid|list)$/
 
@@ -76,3 +76,18 @@ Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
 afterEach(() => {
   cleanup()
 })
+
+// Renderer tests run outside Electron; provide a minimal ipcRenderer mock for components that
+// subscribe to main-process events.
+if (!('ipcRenderer' in window)) {
+  Object.defineProperty(window, 'ipcRenderer', {
+    configurable: true,
+    writable: true,
+    value: {
+      on: vi.fn(),
+      off: vi.fn(),
+      send: vi.fn(),
+      invoke: vi.fn(),
+    },
+  })
+}

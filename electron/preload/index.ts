@@ -11,6 +11,7 @@ let getRecommendationsImpl: () => Promise<RecommendationsResult> = () =>
 const gameApi = {
   getLibrary: (): Promise<AggregatedLibrary | null> => ipcRenderer.invoke('games:get-library'),
   scanAll: (): Promise<AggregatedLibrary> => scanAllImpl(),
+  enrichMetacritic: (): Promise<{ started: true }> => ipcRenderer.invoke('games:enrich-metacritic'),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
   getRecommendations: (): Promise<RecommendationsResult> => getRecommendationsImpl(),

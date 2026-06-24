@@ -1,6 +1,7 @@
 import type {
   AggregatedLibrary,
   Game,
+  MetacriticEnrichmentProgress,
   MetacriticRating,
   ScanResult,
 } from '../../../shared/types/game'
@@ -132,6 +133,11 @@ function groupGamesByTitle(games: Game[]): Map<string, Game[]> {
   return groups
 }
 
+export interface MetacriticEnrichmentOptions {
+  onStart?: (total: number) => void
+  onProgress?: (progress: MetacriticEnrichmentProgress) => void
+}
+
 /**
  * Enriches every game in `library` with a `metacritic` rating where available.
  * Returns a NEW library object with updated `games` (and matching entries in `results`).
@@ -139,13 +145,26 @@ function groupGamesByTitle(games: Game[]): Map<string, Game[]> {
  */
 export async function enrichLibraryWithMetacritic(
   library: AggregatedLibrary,
+  options?: MetacriticEnrichmentOptions,
 ): Promise<AggregatedLibrary> {
   const startedAt = performance.now()
   const groups = [...groupGamesByTitle(library.games).values()]
+  const total = groups.length
   const ratingsByGameId = new Map<string, MetacriticRating>()
 
+  options?.onStart?.(total)
+
   let workerErrors = 0
+  let done = 0
   let cursor = 0
+
+  function reportProgress(): void {
+    options?.onProgress?.({
+      done,
+      total,
+      enriched: ratingsByGameId.size,
+    })
+  }
 
   async function worker(): Promise<void> {
     while (cursor < groups.length) {
@@ -166,6 +185,9 @@ export async function enrichLibraryWithMetacritic(
           platform: representative.platform,
           error: error instanceof Error ? error.message : String(error),
         })
+      } finally {
+        done += 1
+        reportProgress()
       }
       await sleep(REQUEST_DELAY_MS)
     }

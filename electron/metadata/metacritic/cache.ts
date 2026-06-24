@@ -58,7 +58,8 @@ async function load(): Promise<CacheFile> {
 async function persist(): Promise<void> {
   if (!memoryCache) return
   const filePath = cacheFilePath()
-  const tempPath = `${filePath}.tmp`
+  // Use a unique temp path to avoid collisions when multiple concurrent writes happen.
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`
   try {
     await mkdir(path.dirname(filePath), { recursive: true })
     await writeFile(tempPath, `${JSON.stringify(memoryCache, null, 2)}\n`, 'utf8')
