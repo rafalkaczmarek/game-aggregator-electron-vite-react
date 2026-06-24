@@ -4,6 +4,8 @@ const SORT_OPTIONS: { value: LibrarySort; label: string }[] = [
   { value: 'title', label: 'Title' },
   { value: 'playtime-desc', label: 'Most played' },
   { value: 'playtime-asc', label: 'Least played' },
+  { value: 'metacritic-desc', label: 'Highest rated' },
+  { value: 'metacritic-asc', label: 'Lowest rated' },
 ]
 
 const SORT_STYLES: Record<LibrarySort, { on: string; off: string }> = {
@@ -17,6 +19,14 @@ const SORT_STYLES: Record<LibrarySort, { on: string; off: string }> = {
   },
   'playtime-asc': {
     on: 'border-cyan-300 bg-cyan-100 text-cyan-900 ring-1 ring-cyan-200',
+    off: 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700',
+  },
+  'metacritic-desc': {
+    on: 'border-amber-300 bg-amber-100 text-amber-900 ring-1 ring-amber-200',
+    off: 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700',
+  },
+  'metacritic-asc': {
+    on: 'border-amber-300 bg-amber-100 text-amber-900 ring-1 ring-amber-200',
     off: 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700',
   },
 }

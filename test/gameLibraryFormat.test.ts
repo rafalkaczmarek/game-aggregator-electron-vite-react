@@ -4,6 +4,7 @@ import {
   formatPlaytime,
   getGroupedGameCoverGame,
   getGroupedGameMetacritic,
+  getGroupedGameMetacriticSortScore,
   getGroupedGamePlaytime,
   groupGamesByTitle,
   isGroupedGameInstalled,
@@ -174,6 +175,44 @@ describe('game library format helpers', () => {
     })
   })
 
+  describe('getGroupedGameMetacriticSortScore', () => {
+    it('returns metascore when available', () => {
+      const grouped = groupGamesByTitle([
+        {
+          id: 'steam-1',
+          platform: 'steam',
+          title: 'Rated Game',
+          installed: false,
+          metacritic: { metascore: 88, userScore: 7.0, platform: 'pc' },
+        },
+      ])[0]
+
+      expect(getGroupedGameMetacriticSortScore(grouped)).toBe(88)
+    })
+
+    it('scales user score to 0-100 when metascore is missing', () => {
+      const grouped = groupGamesByTitle([
+        {
+          id: 'steam-1',
+          platform: 'steam',
+          title: 'User Rated Game',
+          installed: false,
+          metacritic: { userScore: 8.5, platform: 'pc' },
+        },
+      ])[0]
+
+      expect(getGroupedGameMetacriticSortScore(grouped)).toBe(85)
+    })
+
+    it('returns undefined when no rating exists', () => {
+      const grouped = groupGamesByTitle([
+        { id: 'steam-1', platform: 'steam', title: 'Unrated Game', installed: false },
+      ])[0]
+
+      expect(getGroupedGameMetacriticSortScore(grouped)).toBeUndefined()
+    })
+  })
+
   describe('filterGroupedGamesByPlayStatus', () => {
     const groups = groupGamesByTitle(sampleGames)
 
@@ -284,6 +323,82 @@ describe('game library format helpers', () => {
           { id: 'gog-a', platform: 'gog', title: 'Alan Wake', installed: false, playtimeMinutes: 60 },
         ]),
         'playtime-desc',
+      )
+
+      expect(grouped.map((game) => game.title)).toEqual(['Alan Wake', 'Zelda'])
+    })
+
+    const metacriticGames: Game[] = [
+      {
+        id: 'steam-dota',
+        platform: 'steam',
+        title: 'Dota 2',
+        installed: true,
+        metacritic: { metascore: 90, platform: 'pc' },
+      },
+      {
+        id: 'gog-cyber',
+        platform: 'gog',
+        title: 'Cyberpunk 2077',
+        installed: false,
+        metacritic: { metascore: 86, platform: 'pc' },
+      },
+      {
+        id: 'epic-alan',
+        platform: 'epic',
+        title: 'Alan Wake',
+        installed: true,
+        metacritic: { metascore: 83, platform: 'pc' },
+      },
+      {
+        id: 'steam-unrated',
+        platform: 'steam',
+        title: 'Unrated Game',
+        installed: false,
+      },
+    ]
+
+    it('sorts grouped games by metacritic score descending', () => {
+      const grouped = sortGroupedGames(groupGamesByTitle(metacriticGames), 'metacritic-desc')
+
+      expect(grouped.map((game) => game.title)).toEqual([
+        'Dota 2',
+        'Cyberpunk 2077',
+        'Alan Wake',
+        'Unrated Game',
+      ])
+    })
+
+    it('sorts grouped games by metacritic score ascending', () => {
+      const grouped = sortGroupedGames(groupGamesByTitle(metacriticGames), 'metacritic-asc')
+
+      expect(grouped.map((game) => game.title)).toEqual([
+        'Alan Wake',
+        'Cyberpunk 2077',
+        'Dota 2',
+        'Unrated Game',
+      ])
+    })
+
+    it('falls back to title when metacritic scores are equal', () => {
+      const grouped = sortGroupedGames(
+        groupGamesByTitle([
+          {
+            id: 'gog-z',
+            platform: 'gog',
+            title: 'Zelda',
+            installed: false,
+            metacritic: { metascore: 80, platform: 'pc' },
+          },
+          {
+            id: 'gog-a',
+            platform: 'gog',
+            title: 'Alan Wake',
+            installed: false,
+            metacritic: { metascore: 80, platform: 'pc' },
+          },
+        ]),
+        'metacritic-desc',
       )
 
       expect(grouped.map((game) => game.title)).toEqual(['Alan Wake', 'Zelda'])

@@ -4,6 +4,7 @@ export { normalizeGameTitle, normalizeTitleCharacters } from './titleNormalizati
 export {
   getGroupedGameCoverGame,
   getGroupedGameMetacritic,
+  getGroupedGameMetacriticSortScore,
   getGroupedGamePlaytime,
   groupGamesByTitle,
   isGroupedGameInstalled,

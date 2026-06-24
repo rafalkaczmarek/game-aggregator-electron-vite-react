@@ -92,3 +92,19 @@ export function getGroupedGameMetacritic(group: GroupedGame): MetacriticRating |
 
   return ratings[0]
 }
+
+/** Numeric score for sorting; metascore preferred, user score scaled to 0-100 when needed. */
+export function getGroupedGameMetacriticSortScore(group: GroupedGame): number | undefined {
+  const rating = getGroupedGameMetacritic(group)
+  if (!rating) return undefined
+
+  if (typeof rating.metascore === 'number' && !Number.isNaN(rating.metascore)) {
+    return rating.metascore
+  }
+
+  if (typeof rating.userScore === 'number' && !Number.isNaN(rating.userScore)) {
+    return rating.userScore * 10
+  }
+
+  return undefined
+}

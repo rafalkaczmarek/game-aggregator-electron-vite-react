@@ -9,4 +9,4 @@ export interface GroupedGame {
 
 export type PlayStatusFilter = 'all' | 'played' | 'unplayed'
 
-export type LibrarySort = 'title' | 'playtime-desc' | 'playtime-asc'
+export type LibrarySort = 'title' | 'playtime-desc' | 'playtime-asc' | 'metacritic-desc' | 'metacritic-asc'

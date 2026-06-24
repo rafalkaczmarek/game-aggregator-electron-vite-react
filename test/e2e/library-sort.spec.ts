@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import type { Page } from '@playwright/test'
-import { createDuplicateTitleLibrary, createMockLibrary } from '../fixtures/games'
+import { createDuplicateTitleLibrary, createMockLibrary, createMockLibraryWithMetacritic } from '../fixtures/games'
 import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 async function getVisibleGameTitles(page: Page, view: 'grid' | 'list' = 'grid') {
@@ -136,5 +136,35 @@ test.describe('library sort', () => {
 
     await expect(page.getByText('(filtered)')).toBeVisible()
     await expect(await getVisibleGameTitles(page)).toEqual(['Dota 2', 'Alan Wake'])
+  })
+
+  test('sorts by highest metacritic score in grid view', async ({ page }) => {
+    await setScanAllMock(page, createMockLibraryWithMetacritic())
+
+    await page.click('button:has-text("Scan libraries")')
+    await page.getByRole('button', { name: 'Highest rated', exact: true }).click()
+
+    await expect(page.getByRole('button', { name: 'Highest rated', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await expect(await getVisibleGameTitles(page)).toEqual([
+      'Dota 2',
+      'Cyberpunk 2077',
+      'Alan Wake',
+    ])
+  })
+
+  test('sorts by lowest metacritic score in grid view', async ({ page }) => {
+    await setScanAllMock(page, createMockLibraryWithMetacritic())
+
+    await page.click('button:has-text("Scan libraries")')
+    await page.getByRole('button', { name: 'Lowest rated', exact: true }).click()
+
+    await expect(await getVisibleGameTitles(page)).toEqual([
+      'Alan Wake',
+      'Cyberpunk 2077',
+      'Dota 2',
+    ])
   })
 })

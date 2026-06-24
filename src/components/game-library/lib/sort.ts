@@ -1,5 +1,5 @@
 import type { Game } from '@shared/types/game'
-import { getGroupedGamePlaytime } from './grouping'
+import { getGroupedGameMetacriticSortScore, getGroupedGamePlaytime } from './grouping'
 import type { GroupedGame, LibrarySort } from './types'
 
 function compareTitles(a: string, b: string): number {
@@ -8,6 +8,10 @@ function compareTitles(a: string, b: string): number {
 
 function getGroupPlaytimeMinutes(group: GroupedGame): number {
   return getGroupedGamePlaytime(group) ?? 0
+}
+
+function getGroupMetacriticScore(group: GroupedGame): number | undefined {
+  return getGroupedGameMetacriticSortScore(group)
 }
 
 export function sortGamesByTitle(games: Game[]): Game[] {
@@ -32,8 +36,22 @@ export function sortGroupedGames(groups: GroupedGame[], sort: LibrarySort): Grou
     })
   }
 
+  if (sort === 'playtime-asc') {
+    return sorted.sort((a, b) => {
+      const diff = getGroupPlaytimeMinutes(a) - getGroupPlaytimeMinutes(b)
+      return diff !== 0 ? diff : compareTitles(a.title, b.title)
+    })
+  }
+
+  if (sort === 'metacritic-desc') {
+    return sorted.sort((a, b) => {
+      const diff = (getGroupMetacriticScore(b) ?? -1) - (getGroupMetacriticScore(a) ?? -1)
+      return diff !== 0 ? diff : compareTitles(a.title, b.title)
+    })
+  }
+
   return sorted.sort((a, b) => {
-    const diff = getGroupPlaytimeMinutes(a) - getGroupPlaytimeMinutes(b)
+    const diff = (getGroupMetacriticScore(a) ?? Infinity) - (getGroupMetacriticScore(b) ?? Infinity)
     return diff !== 0 ? diff : compareTitles(a.title, b.title)
   })
 }
