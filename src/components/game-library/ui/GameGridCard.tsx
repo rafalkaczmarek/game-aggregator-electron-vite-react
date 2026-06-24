@@ -1,9 +1,11 @@
 import { memo } from 'react'
 import GameCover from './GameCover'
+import MetacriticBadge from './MetacriticBadge'
 import { PlatformBadges } from './PlatformBadge'
 import { GRID_CARD_META_HEIGHT_PX, GRID_CARD_WIDTH_SCALE } from '../lib/virtualScroll'
 import {
   getGroupedGameCoverGame,
+  getGroupedGameMetacritic,
   getGroupedGamePlaytime,
   isGroupedGameInstalled,
 } from '../lib/grouping'
@@ -13,6 +15,7 @@ import type { GroupedGame } from '../lib/types'
 function GameGridCard({ game }: { game: GroupedGame }) {
   const coverGame = getGroupedGameCoverGame(game)
   const installed = isGroupedGameInstalled(game)
+  const rating = getGroupedGameMetacritic(game)
 
   return (
     <article
@@ -25,6 +28,11 @@ function GameGridCard({ game }: { game: GroupedGame }) {
           <span className='absolute left-2 top-[14px] z-20 rounded-md bg-emerald-600/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white'>
             Installed
           </span>
+        )}
+        {rating && (
+          <div className='absolute right-2 top-[14px] z-20'>
+            <MetacriticBadge rating={rating} size='default' />
+          </div>
         )}
       </div>
       <div

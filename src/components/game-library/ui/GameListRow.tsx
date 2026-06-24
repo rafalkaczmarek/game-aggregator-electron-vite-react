@@ -1,8 +1,10 @@
 import { memo } from 'react'
 import GameCover from './GameCover'
+import MetacriticBadge from './MetacriticBadge'
 import { PlatformBadges } from './PlatformBadge'
 import {
   getGroupedGameCoverGame,
+  getGroupedGameMetacritic,
   getGroupedGamePlaytime,
   isGroupedGameInstalled,
 } from '../lib/grouping'
@@ -12,6 +14,7 @@ import type { GroupedGame } from '../lib/types'
 function GameListRow({ game }: { game: GroupedGame }) {
   const coverGame = getGroupedGameCoverGame(game)
   const installed = isGroupedGameInstalled(game)
+  const rating = getGroupedGameMetacritic(game)
 
   return (
     <div className='group flex items-center gap-3 bg-white px-3 py-0 transition hover:bg-slate-50'>
@@ -29,6 +32,7 @@ function GameListRow({ game }: { game: GroupedGame }) {
         </p>
       </div>
       <div className='flex shrink-0 items-center gap-3'>
+        {rating && <MetacriticBadge rating={rating} size='default' />}
         {installed && (
           <span className='hidden text-xs font-medium text-emerald-700 sm:inline'>Installed</span>
         )}

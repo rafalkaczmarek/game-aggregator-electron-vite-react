@@ -3,6 +3,7 @@ export { formatPlaytime, isGamePlayed } from './playtime'
 export { normalizeGameTitle, normalizeTitleCharacters } from './titleNormalization'
 export {
   getGroupedGameCoverGame,
+  getGroupedGameMetacritic,
   getGroupedGamePlaytime,
   groupGamesByTitle,
   isGroupedGameInstalled,

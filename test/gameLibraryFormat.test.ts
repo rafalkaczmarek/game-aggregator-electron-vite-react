@@ -3,6 +3,7 @@ import {
   filterGroupedGamesByPlayStatus,
   formatPlaytime,
   getGroupedGameCoverGame,
+  getGroupedGameMetacritic,
   getGroupedGamePlaytime,
   groupGamesByTitle,
   isGroupedGameInstalled,
@@ -98,6 +99,78 @@ describe('game library format helpers', () => {
         }),
       ).toBe(false)
       expect(isGroupedGamePlayed(group)).toBe(true)
+    })
+  })
+
+  describe('getGroupedGameMetacritic', () => {
+    it('returns undefined when no entry has a rating', () => {
+      const grouped = groupGamesByTitle([
+        { id: 'gog-1', platform: 'gog', title: 'No Rating Game', installed: false },
+        { id: 'epic-1', platform: 'epic', title: 'No Rating Game', installed: false },
+      ])[0]
+
+      expect(getGroupedGameMetacritic(grouped)).toBeUndefined()
+    })
+
+    it('picks the highest metascore across platform entries', () => {
+      const grouped = groupGamesByTitle([
+        {
+          id: 'gog-1',
+          platform: 'gog',
+          title: 'Cross Platform Hit',
+          installed: false,
+          metacritic: { metascore: 78, userScore: 8.1, platform: 'pc' },
+        },
+        {
+          id: 'psn-1',
+          platform: 'psn',
+          title: 'Cross Platform Hit',
+          installed: false,
+          metacritic: { metascore: 92, userScore: 7.4, platform: 'playstation-5' },
+        },
+      ])[0]
+
+      expect(getGroupedGameMetacritic(grouped)).toEqual({
+        metascore: 92,
+        userScore: 7.4,
+        platform: 'playstation-5',
+      })
+    })
+
+    it('falls back to the entry with the highest user score when no metascore exists', () => {
+      const grouped = groupGamesByTitle([
+        {
+          id: 'gog-1',
+          platform: 'gog',
+          title: 'User Only Game',
+          installed: false,
+          metacritic: { userScore: 6.2, platform: 'pc' },
+        },
+        {
+          id: 'epic-1',
+          platform: 'epic',
+          title: 'User Only Game',
+          installed: false,
+          metacritic: { userScore: 8.9, platform: 'pc' },
+        },
+      ])[0]
+
+      expect(getGroupedGameMetacritic(grouped)).toEqual({ userScore: 8.9, platform: 'pc' })
+    })
+
+    it('skips entries without ratings when picking the best', () => {
+      const grouped = groupGamesByTitle([
+        { id: 'gog-1', platform: 'gog', title: 'Mixed Game', installed: false },
+        {
+          id: 'epic-1',
+          platform: 'epic',
+          title: 'Mixed Game',
+          installed: false,
+          metacritic: { metascore: 81, platform: 'pc' },
+        },
+      ])[0]
+
+      expect(getGroupedGameMetacritic(grouped)).toEqual({ metascore: 81, platform: 'pc' })
     })
   })
 

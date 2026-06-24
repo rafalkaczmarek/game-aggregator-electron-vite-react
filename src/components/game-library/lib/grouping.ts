@@ -1,4 +1,4 @@
-import type { Game, GamePlatform } from '@shared/types/game'
+import type { Game, GamePlatform, MetacriticRating } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import { normalizeGameTitle, normalizeTitleCharacters } from './titleNormalization'
 import type { GroupedGame } from './types'
@@ -62,4 +62,33 @@ export function isGroupedGameInstalled(group: GroupedGame): boolean {
 
 export function isGroupedGamePlayed(group: GroupedGame): boolean {
   return getGroupedGamePlaytime(group) != null
+}
+
+/**
+ * Picks a single Metacritic rating to represent a grouped game.
+ * Prefers the entry with the highest `metascore`; falls back to the highest `userScore`
+ * when no metascore is available. Returns `undefined` when no entry has any rating.
+ */
+export function getGroupedGameMetacritic(group: GroupedGame): MetacriticRating | undefined {
+  const ratings = group.entries
+    .map((entry) => entry.metacritic)
+    .filter((rating): rating is MetacriticRating => rating != null)
+
+  if (ratings.length === 0) return undefined
+
+  const withMetascore = ratings.filter((rating) => typeof rating.metascore === 'number')
+  if (withMetascore.length > 0) {
+    return withMetascore.reduce((best, current) =>
+      (current.metascore ?? -Infinity) > (best.metascore ?? -Infinity) ? current : best,
+    )
+  }
+
+  const withUserScore = ratings.filter((rating) => typeof rating.userScore === 'number')
+  if (withUserScore.length > 0) {
+    return withUserScore.reduce((best, current) =>
+      (current.userScore ?? -Infinity) > (best.userScore ?? -Infinity) ? current : best,
+    )
+  }
+
+  return ratings[0]
 }

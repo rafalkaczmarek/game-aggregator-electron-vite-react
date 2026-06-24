@@ -1,6 +1,7 @@
 import type { AggregatedLibrary, Game, GamePlatform, ScanResult } from '../../shared/types/game'
 import { GAME_PLATFORMS } from '../../shared/types/game'
 import { createScopedLogger } from '../lib/logger'
+import { enrichLibraryWithMetacritic } from '../metadata/metacritic'
 import { readGogGalaxyLibrary } from './gog/db'
 import { findGalaxyDbPath } from './gog/paths'
 import { scanEpic } from './epic'
@@ -53,15 +54,11 @@ async function scanPlatformWithGogFallback(
   return scanners[platform]()
 }
 
-export async function scanAllGames(): Promise<AggregatedLibrary> {
-  logger.info('Full library scan started')
-
+async function scanAllGamesWithoutEnrichment(): Promise<AggregatedLibrary> {
   const dbPath = await findGalaxyDbPath()
   if (!dbPath) {
     logger.debug('GOG Galaxy DB not found — using individual scanners')
-    const library = await scanAllWithIndividualScanners()
-    logScanSummary(library)
-    return library
+    return scanAllWithIndividualScanners()
   }
 
   logger.debug('GOG Galaxy DB found — using hybrid scan', { dbPath })
@@ -71,13 +68,34 @@ export async function scanAllGames(): Promise<AggregatedLibrary> {
     const results = await Promise.all(
       GAME_PLATFORMS.map((platform) => scanPlatformWithGogFallback(platform, gamesFromDb)),
     )
-    const library = buildAggregatedLibrary(results)
-    logScanSummary(library)
-    return library
+    return buildAggregatedLibrary(results)
   } catch (error) {
     logger.warn('GOG Galaxy DB read failed — falling back to individual scanners', error)
-    const library = await scanAllWithIndividualScanners()
-    logScanSummary(library)
+    return scanAllWithIndividualScanners()
+  }
+}
+
+/**
+ * Skipping the Metacritic step in E2E avoids hitting an external service from automated tests.
+ */
+function shouldEnrichWithMetacritic(): boolean {
+  return process.env.E2E_TEST !== '1'
+}
+
+export async function scanAllGames(): Promise<AggregatedLibrary> {
+  logger.info('Full library scan started')
+
+  const library = await scanAllGamesWithoutEnrichment()
+  logScanSummary(library)
+
+  if (!shouldEnrichWithMetacritic() || library.games.length === 0) {
+    return library
+  }
+
+  try {
+    return await enrichLibraryWithMetacritic(library)
+  } catch (error) {
+    logger.warn('Metacritic enrichment failed — returning library without ratings', error)
     return library
   }
 }

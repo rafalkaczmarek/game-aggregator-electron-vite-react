@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Game, ScanResult } from '@shared/types/game'
+import type { AggregatedLibrary, Game, ScanResult } from '@shared/types/game'
 
 const fixtureDb = path.join(import.meta.dirname, 'fixtures', 'gog', 'galaxy-2.0.db')
 
@@ -10,6 +10,9 @@ const scanEpic = vi.fn<() => Promise<ScanResult>>()
 const scanPsn = vi.fn<() => Promise<ScanResult>>()
 const findGalaxyDbPath = vi.fn<() => Promise<string | null>>(async () => null)
 const readGogGalaxyLibrary = vi.fn<(dbPath: string) => Partial<Record<Game['platform'], Game[]>>>()
+const enrichLibraryWithMetacritic = vi.fn<(library: AggregatedLibrary) => Promise<AggregatedLibrary>>(
+  async (library) => library,
+)
 const gogDbMocks = vi.hoisted(() => ({
   readGogGalaxyLibraryActual: null as
     | ((dbPath: string) => Partial<Record<Game['platform'], Game[]>>)
@@ -21,6 +24,7 @@ vi.mock('../electron/scanners/gog', () => ({ scanGog }))
 vi.mock('../electron/scanners/epic', () => ({ scanEpic }))
 vi.mock('../electron/scanners/psn', () => ({ scanPsn }))
 vi.mock('../electron/scanners/gog/paths', () => ({ findGalaxyDbPath }))
+vi.mock('../electron/metadata/metacritic', () => ({ enrichLibraryWithMetacritic }))
 vi.mock('../electron/scanners/gog/db', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../electron/scanners/gog/db')>()
   gogDbMocks.readGogGalaxyLibraryActual = actual.readGogGalaxyLibrary
@@ -57,6 +61,9 @@ describe('scanner aggregator', () => {
     scanGog.mockResolvedValue(stubResult('gog', 'GOG Game'))
     scanEpic.mockResolvedValue(stubResult('epic', 'Epic Game'))
     scanPsn.mockResolvedValue(stubResult('psn', 'PSN Game'))
+
+    enrichLibraryWithMetacritic.mockReset()
+    enrichLibraryWithMetacritic.mockImplementation(async (library) => library)
   })
 
   it('delegates scanPlatform to the matching scanner', async () => {
