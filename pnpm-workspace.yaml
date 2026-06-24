@@ -1,6 +1,9 @@
 packages:
   - '.'
 
+nodeLinker: hoisted
+virtualStoreDirMaxLength: 70
+
 allowBuilds:
   electron: true
   electron-winstaller: true

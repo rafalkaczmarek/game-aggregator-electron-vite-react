@@ -45,6 +45,10 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          # NSIS on Windows cannot open templates under deep .pnpm paths (MAX_PATH)
+          npm_config_node_linker: hoisted
+          npm_config_virtual_store_dir_max_length: 70
 
       - name: Build Release Files
         run: pnpm run build
