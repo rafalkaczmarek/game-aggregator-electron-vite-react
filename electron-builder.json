@@ -28,8 +28,8 @@
   },
   "publish": {
     "provider": "github",
-    "owner": "electron-vite",
-    "repo": "electron-vite-react",
+    "owner": "rafalkaczmarek",
+    "repo": "game-aggregator-electron-vite-react",
     "releaseType": "release"
   }
 }

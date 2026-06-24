@@ -58,4 +58,4 @@ const steam = await window.gameApi.scanPlatform('steam')
 
 ## Wymagania
 
-Node.js >= 20.19.0 || >= 22.12.0
+Node.js >= 24

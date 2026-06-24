@@ -6,10 +6,13 @@
   "license": "MIT",
   "author": "Rafał Kaczmarek",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "main": "dist-electron/main/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && electron-builder",
+    "build": "vite build && electron-builder --publish never",
     "preview": "vite preview",
     "pretest": "vite build --mode=test",
     "test": "vitest run",
