@@ -1,7 +1,14 @@
 /// <reference path="./global.d.ts" />
 
-import { createLargeMockLibrary, createMockLibrary } from '@test/fixtures/games'
-import { expect, goToAppPage, test, writeLibraryCache } from './fixtures'
+import { createLargeMockLibrary, createMockLibrary, createMockLibraryWithMetacritic } from '@test/fixtures/games'
+import {
+  expect,
+  goToAppPage,
+  resetGameDescriptionMock,
+  setGameDescriptionMock,
+  test,
+  writeLibraryCache,
+} from './fixtures'
 
 test.describe('game detail page', () => {
   const mockLibrary = createMockLibrary()
@@ -148,5 +155,48 @@ test.describe('game detail page', () => {
 
     await expect(page.getByTestId('game-detail-page')).toBeVisible()
     await expect(page.getByText('No description available for this game yet.')).toBeVisible()
+  })
+
+  test('shows not found page for unknown game key', async ({ page }) => {
+    await page.evaluate(() => {
+      window.location.hash = '#/library/unknown-game-key'
+    })
+
+    await expect(page.getByTestId('game-detail-not-found')).toBeVisible()
+    await expect(
+      page.getByText('Game not found. It may have been removed from your library since the last scan.'),
+    ).toBeVisible()
+
+    await page.getByRole('button', { name: '← Back to library' }).click()
+    await expect(page.getByText('Your games')).toBeVisible()
+  })
+
+  test('shows metacritic badge and installed label on detail page', async ({ page }) => {
+    await writeLibraryCache(page, createMockLibraryWithMetacritic())
+    await page.reload()
+    await goToAppPage(page, 'library')
+
+    await page.getByTestId('game-link-dota 2').click()
+    await expect(page.getByTestId('game-detail-page')).toBeVisible()
+    await expect(page.getByLabel('Metascore: 90')).toBeVisible()
+    await expect(page.getByLabel('User score: 6.8')).toBeVisible()
+    await expect(page.getByText('Installed')).toBeVisible()
+
+    await page.getByRole('button', { name: '← Back to library' }).click()
+    await page.getByTestId('game-link-alan wake').click()
+    await expect(page.getByText('Installed')).toBeVisible()
+  })
+
+  test('shows steam game description from mocked store response', async ({ page }) => {
+    await setGameDescriptionMock(page, {
+      text: 'Every day, millions of players worldwide enter battle as one of over a hundred Dota heroes.',
+      source: 'steam',
+    })
+
+    await page.getByTestId('game-link-dota 2').click()
+    await expect(page.getByTestId('game-detail-page')).toBeVisible()
+    await expect(page.getByText(/millions of players worldwide/i)).toBeVisible()
+
+    await resetGameDescriptionMock(page)
   })
 })

@@ -126,6 +126,19 @@ test.describe('recommendations', () => {
     await expect(page.getByText(/Brak zeskanowanej biblioteki/i)).toBeVisible()
   })
 
+  test('shows error when recommendation generation fails', async ({ page }) => {
+    await writeLibraryCache(page, createMockLibrary())
+    await configureGithubPat(page)
+    await page.reload()
+    await goToAppPage(page, 'recommendations')
+    await setRecommendationsMock(page, { error: 'E2E recommendation service unavailable' })
+
+    await page.getByTestId('generate-recommendations').click()
+
+    await expect(page.getByText('E2E recommendation service unavailable')).toBeVisible()
+    await expect(page.getByText('Z Twojego katalogu')).toHaveCount(0)
+  })
+
   test('saves github pat and enables recommendations button', async ({ page }) => {
     await goToAppPage(page, 'settings')
     await page.getByTestId('settings-nav-github').click()

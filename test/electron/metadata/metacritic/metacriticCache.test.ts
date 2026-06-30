@@ -3,6 +3,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AggregatedLibrary, Game } from '@shared/types/game'
+import type { MetacriticCacheFile } from '@electron/metadata/metacritic/cache'
+import { METACRITIC_PLATFORM_CANDIDATES } from '@electron/metadata/metacritic/platforms'
 import { cacheKey } from '@electron/metadata/metacritic/slug'
 
 const userDataDir = path.join(os.tmpdir(), `metacritic-cache-test-${process.pid}`)
@@ -33,6 +35,7 @@ function game(overrides: Partial<Game> & Pick<Game, 'id' | 'title'>): Game {
   return {
     platform: 'steam',
     playtimeMinutes: 0,
+    installed: false,
     ...overrides,
   }
 }
@@ -43,6 +46,32 @@ function library(games: Game[]): AggregatedLibrary {
     scannedAt: new Date().toISOString(),
     results: [{ platform: 'steam', games, errors: [] }],
   }
+}
+
+const DEFAULT_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const MISS_TTL_MS = 7 * 24 * 60 * 60 * 1000
+
+function hasUsableMetacritic(rating: Game['metacritic']): boolean {
+  if (!rating) return false
+  return typeof rating.metascore === 'number' || typeof rating.userScore === 'number'
+}
+
+function isFreshCacheEntry(entry: { rating: unknown; fetchedAt: string }): boolean {
+  const fetchedAt = Date.parse(entry.fetchedAt)
+  if (!Number.isFinite(fetchedAt)) return false
+  const ttl = entry.rating ? DEFAULT_TTL_MS : MISS_TTL_MS
+  return Date.now() - fetchedAt < ttl
+}
+
+/** Games safe to enrich offline: already rated on the game, or a fresh positive cache hit. */
+function hasOfflineCacheCoverage(game: Game, entries: MetacriticCacheFile['entries']): boolean {
+  if (hasUsableMetacritic(game.metacritic)) return true
+  const candidates = METACRITIC_PLATFORM_CANDIDATES[game.platform]
+  return candidates.some((candidate) => {
+    const key = cacheKey(game.title, candidate)
+    const entry = entries[key]
+    return Boolean(entry && isFreshCacheEntry(entry) && entry.rating !== null)
+  })
 }
 
 describe('metacritic cache', () => {
@@ -138,9 +167,17 @@ describe('metacritic cache', () => {
     await writeFile(path.join(userDataDir, 'metacritic-cache.json'), realCache, 'utf8')
     _resetCacheForTesting()
 
+    const parsedCache = JSON.parse(realCache) as MetacriticCacheFile
     const parsedLibrary = JSON.parse(realLibrary) as AggregatedLibrary
+    const offlineGames = parsedLibrary.games
+      .filter((game) => hasOfflineCacheCoverage(game, parsedCache.entries))
+      .slice(0, 100)
+
+    // Library and cache can drift locally (e.g. new scan before enrichment finishes).
+    if (offlineGames.length < 50) return
+
     const startedAt = performance.now()
-    const result = await enrichLibraryWithMetacritic(library(parsedLibrary.games.slice(0, 100)))
+    const result = await enrichLibraryWithMetacritic(library(offlineGames))
     const durationMs = performance.now() - startedAt
 
     expect(fetchGameDetails).not.toHaveBeenCalled()

@@ -112,4 +112,26 @@ test.describe('settings', () => {
     const configured = await page.evaluate(() => window.settingsApi.get())
     expect(configured.psnOnlineId).toBe('public-player')
   })
+
+  test('saves and clears github pat through UI', async ({ page }) => {
+    await page.getByTestId('settings-nav-github').click()
+    await page.waitForSelector('#github-pat')
+
+    await page.fill('#github-pat', 'e2e-github-pat-token')
+    await page.getByRole('button', { name: 'Zapisz token GitHub' }).click()
+
+    await expect(page.getByText('Token GitHub zapisany.')).toBeVisible()
+    await expect(page.getByText('Token GitHub skonfigurowany')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Usuń token' })).toBeVisible()
+
+    const configured = await page.evaluate(() => window.settingsApi.get())
+    expect(configured.githubPatSet).toBe(true)
+
+    await page.getByRole('button', { name: 'Usuń token' }).click()
+    await expect(page.getByText('Token GitHub usunięty.')).toBeVisible()
+    await expect(page.getByText('Token GitHub skonfigurowany')).toHaveCount(0)
+
+    const cleared = await page.evaluate(() => window.settingsApi.get())
+    expect(cleared.githubPatSet).toBe(false)
+  })
 })

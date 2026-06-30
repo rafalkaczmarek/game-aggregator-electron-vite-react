@@ -1,14 +1,15 @@
 import { ipcRenderer } from 'electron'
 import type { AggregatedLibrary } from '../../shared/types/game'
-import type { RecommendationsResult } from '../../shared/types/recommendations'
 import type { PsnE2eFixture } from '../scanners/psn/e2e'
 import {
   configureEnrichMetacriticFromCacheMode,
   configureEnrichMetacriticMock,
+  configureGameDescriptionMock,
   configureRecommendationsMock,
   configureScanAllMock,
   getLastRecommendationsOptions,
   resetLastRecommendationsOptions,
+  type RecommendationsE2eMock,
 } from './gameApi'
 
 export function createE2eBridge() {
@@ -28,8 +29,14 @@ export function createE2eBridge() {
     setPsnFixture(fixture: PsnE2eFixture | null) {
       return ipcRenderer.invoke('e2e:set-psn-fixture', fixture)
     },
-    setRecommendationsMock(result: RecommendationsResult | null) {
-      configureRecommendationsMock(result)
+    setRecommendationsMock(mock: RecommendationsE2eMock) {
+      configureRecommendationsMock(mock)
+    },
+    setGameDescriptionMock(description: import('../../shared/types/game').GameDescription | null) {
+      configureGameDescriptionMock(description)
+    },
+    resetGameDescriptionMock() {
+      configureGameDescriptionMock(undefined)
     },
     getLastRecommendationsOptions,
     resetLastRecommendationsOptions,

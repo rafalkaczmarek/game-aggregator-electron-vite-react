@@ -105,6 +105,9 @@ test.describe('metacritic ratings', () => {
     const status = page.getByTestId('metacritic-enrichment-status')
     await expect(status).toBeVisible()
     await expect(status.getByText(/Metacritic scores could not be loaded/i)).toBeVisible()
+
+    await status.getByRole('button', { name: 'Dismiss' }).click()
+    await expect(status).toHaveCount(0)
   })
 
   test('shows metacritic badges incrementally during mock enrichment', async ({ page }) => {
@@ -186,6 +189,9 @@ test.describe('metacritic ratings', () => {
     const dotaCard = grid.locator('article', { hasText: 'Dota 2' })
     await expect(dotaCard.getByLabel('Metascore: 90')).toBeVisible()
     await expect(dotaCard.getByLabel('User score: 6.8')).toBeVisible()
+
+    await status.getByRole('button', { name: 'Dismiss' }).click()
+    await expect(status).toHaveCount(0)
   })
 })
 

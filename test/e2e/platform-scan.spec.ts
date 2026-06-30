@@ -37,4 +37,15 @@ test.describe('platform scan', () => {
 
     expect(error).toContain('Unknown platform')
   })
+
+  test('gog platform scan returns a result via IPC', async ({ page }) => {
+    test.setTimeout(60_000)
+
+    const result = await page.evaluate(() => window.gameApi.scanPlatform('gog'))
+
+    expect(result.platform).toBe('gog')
+    expect(Array.isArray(result.games)).toBe(true)
+    expect(Array.isArray(result.errors)).toBe(true)
+    expect(result.errors.some((error) => error.includes('not implemented'))).toBe(false)
+  })
 })

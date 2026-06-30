@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import type {
   AggregatedLibrary,
+  GameDescription,
   GameDescriptionRequest,
   GamePlatform,
   ScanResult,
@@ -26,6 +27,14 @@ let getRecommendationsImpl = createTrackedRecommendationsImpl((options) =>
   ipcRenderer.invoke('games:get-recommendations', options),
 )
 
+let getGameDescriptionImpl = (request: GameDescriptionRequest) =>
+  ipcRenderer.invoke('games:get-game-description', request)
+
+export type RecommendationsE2eMock =
+  | RecommendationsResult
+  | { error: string }
+  | null
+
 export function configureScanAllMock(result: AggregatedLibrary | null) {
   scanAllImpl = result
     ? () => Promise.resolve(result)
@@ -44,12 +53,26 @@ export function configureEnrichMetacriticFromCacheMode(enabled: boolean) {
     : () => ipcRenderer.invoke('games:enrich-metacritic')
 }
 
-export function configureRecommendationsMock(result: RecommendationsResult | null) {
+export function configureRecommendationsMock(mock: RecommendationsE2eMock) {
+  if (mock && typeof mock === 'object' && 'error' in mock) {
+    getRecommendationsImpl = createTrackedRecommendationsImpl(() =>
+      Promise.reject(new Error(mock.error)),
+    )
+    return
+  }
+
   getRecommendationsImpl = createTrackedRecommendationsImpl(
-    result
-      ? () => Promise.resolve(result)
+    mock
+      ? () => Promise.resolve(mock)
       : (options) => ipcRenderer.invoke('games:get-recommendations', options),
   )
+}
+
+export function configureGameDescriptionMock(description: GameDescription | null | undefined) {
+  getGameDescriptionImpl =
+    description === undefined
+      ? (request) => ipcRenderer.invoke('games:get-game-description', request)
+      : () => Promise.resolve(description)
 }
 
 export function getLastRecommendationsOptions() {
@@ -66,8 +89,7 @@ export const gameApi = {
   enrichMetacritic: (): Promise<{ started: true }> => enrichMetacriticImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
-  getGameDescription: (request: GameDescriptionRequest) =>
-    ipcRenderer.invoke('games:get-game-description', request),
+  getGameDescription: (request: GameDescriptionRequest) => getGameDescriptionImpl(request),
   getRecommendations: (options?: RecommendationsOptions): Promise<RecommendationsResult> =>
     getRecommendationsImpl(options),
 }

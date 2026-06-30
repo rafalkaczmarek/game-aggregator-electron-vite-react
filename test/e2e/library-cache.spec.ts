@@ -71,4 +71,32 @@ test.describe('library cache', () => {
     expect(restored?.games.length).toBe(cached?.games.length)
     await expect(page.locator('[data-testid="platform-summary"] li')).toHaveCount(4)
   })
+
+  test('shows empty library message when scan finds no games', async ({ page }) => {
+    const emptyLibrary = createMockLibrary([])
+    await setScanAllMock(page, emptyLibrary)
+
+    await page.click('button:has-text("Scan libraries")')
+
+    await expect(page.getByText(/Last scan:.*— 0 games/)).toBeVisible()
+    await expect(
+      page.getByText('No games found. Run a scan after installing games on Steam, GOG, Epic, or linking PSN.'),
+    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Load Metacritic scores' })).toBeDisabled()
+  })
+
+  test('shows platform scan errors in summary', async ({ page }) => {
+    const libraryWithErrors = createMockLibrary()
+    libraryWithErrors.results = libraryWithErrors.results.map((result) =>
+      result.platform === 'steam'
+        ? { ...result, errors: ['Steam library folder not found'] }
+        : result,
+    )
+
+    await setScanAllMock(page, libraryWithErrors)
+    await page.click('button:has-text("Scan libraries")')
+
+    const steamRow = page.locator('[data-testid="platform-summary"] li', { hasText: 'steam' })
+    await expect(steamRow.getByText('Steam library folder not found')).toBeVisible()
+  })
 })

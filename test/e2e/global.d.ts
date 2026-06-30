@@ -15,8 +15,15 @@ declare global {
         fixture: import('@electron/scanners/psn/e2e').PsnE2eFixture | null,
       ) => Promise<void>
       setRecommendationsMock: (
-        result: import('../../shared/types/recommendations').RecommendationsResult | null,
+        result:
+          | import('../../shared/types/recommendations').RecommendationsResult
+          | { error: string }
+          | null,
       ) => void
+      setGameDescriptionMock: (
+        description: import('../../shared/types/game').GameDescription | null,
+      ) => void
+      resetGameDescriptionMock: () => void
       getLastRecommendationsOptions: () =>
         | import('../../shared/types/recommendations').RecommendationsOptions
         | undefined

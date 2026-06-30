@@ -79,13 +79,12 @@ export const test = base.extend<{}, { electronWorker: ElectronWorker }>({
       }
 
       const electronApp = await electron.launch({
-        args: ['.', '--no-sandbox'],
+        args: ['.', '--no-sandbox', `--user-data-dir=${e2eUserData}`],
         cwd: root,
         env: {
           ...process.env,
           NODE_ENV: 'development',
           E2E_TEST: '1',
-          ELECTRON_USER_DATA: e2eUserData,
           STEAM_API_KEY: '',
           PSN_NPSSO: '',
           PSN_ONLINE_ID: '',
@@ -152,10 +151,23 @@ export async function setPsnFixture(page: Page, fixture: PsnE2eFixture | null) {
   await page.evaluate((target) => window.__e2e.setPsnFixture(target), fixture)
 }
 
-export async function setRecommendationsMock(page: Page, result: RecommendationsResult | null) {
+export async function setRecommendationsMock(page: Page, result: import('@shared/types/recommendations').RecommendationsResult | { error: string } | null) {
   await page.evaluate((data) => {
     window.__e2e.setRecommendationsMock(data)
   }, result)
+}
+
+export async function setGameDescriptionMock(
+  page: Page,
+  description: import('@shared/types/game').GameDescription | null,
+) {
+  await page.evaluate((data) => {
+    window.__e2e.setGameDescriptionMock(data)
+  }, description)
+}
+
+export async function resetGameDescriptionMock(page: Page) {
+  await page.evaluate(() => window.__e2e.resetGameDescriptionMock())
 }
 
 export async function resetLastRecommendationsOptions(page: Page) {
