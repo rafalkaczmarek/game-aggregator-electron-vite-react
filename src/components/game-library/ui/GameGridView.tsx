@@ -1,6 +1,9 @@
-import { useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import GameGridCard from './GameGridCard'
+import { useLibraryNavigation } from '../context/LibraryNavigationContext'
+import { useLibraryGridScrollRestore } from '../hooks/useLibraryScrollRestore'
+import type { LibraryScrollRestoreState } from '../lib/libraryScrollRestore'
 import { type GroupedGame } from '../lib/types'
 import { observeLibraryScrollRect } from '../lib/observeLibraryScrollRect'
 import { useScrollContainerWidth } from '../hooks/useScrollContainerWidth'
@@ -14,8 +17,14 @@ import {
 
 const FALLBACK_WIDTH = 1024
 
-export default function GameGridView({ games }: { games: GroupedGame[] }) {
-  const scrollRef = useRef<HTMLDivElement>(null)
+interface GameGridViewProps {
+  games: GroupedGame[]
+  scrollRestore?: LibraryScrollRestoreState | null
+}
+
+export default function GameGridView({ games, scrollRestore }: GameGridViewProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const libraryNavigation = useLibraryNavigation()
   const containerWidth = useScrollContainerWidth(scrollRef)
   const layoutWidth = containerWidth || FALLBACK_WIDTH
   const columnCount = getGridColumnCount(layoutWidth)
@@ -32,6 +41,16 @@ export default function GameGridView({ games }: { games: GroupedGame[] }) {
     observeElementRect: observeLibraryScrollRect,
   })
 
+  const setScrollRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      scrollRef.current = node
+      libraryNavigation?.registerScrollContainer(node)
+    },
+    [libraryNavigation],
+  )
+
+  useLibraryGridScrollRestore(games, scrollRestore, scrollRef, columnCount, rowVirtualizer)
+
   const gridStyle = useMemo(
     () => ({
       gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
@@ -42,7 +61,7 @@ export default function GameGridView({ games }: { games: GroupedGame[] }) {
 
   return (
     <div
-      ref={scrollRef}
+      ref={setScrollRef}
       data-testid='game-library-grid'
       className={`${LIBRARY_SCROLL_HEIGHT_CLASS} overflow-y-auto overscroll-y-contain`}
     >

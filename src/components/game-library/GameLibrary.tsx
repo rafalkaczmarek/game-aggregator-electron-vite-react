@@ -1,4 +1,4 @@
-import { Profiler, startTransition, useEffect, useMemo, useState } from 'react'
+import { Profiler, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   AggregatedLibrary,
   GamePlatform,
@@ -33,18 +33,29 @@ import {
   logGameLibraryRender,
   measureGameLibrarySyncWork,
 } from './lib/gameLibraryProfiler'
+import { consumeLibraryScrollRestore, saveLibraryScrollRestore } from './lib/libraryScrollRestore'
+import { LibraryNavigationContext } from './context/LibraryNavigationContext'
 
 const FINISHED_STATUS_DISMISS_MS = 8000
 
 export default function GameLibrary() {
+  const [scrollRestore] = useState(() => consumeLibraryScrollRestore())
+  const scrollContainerRef = useRef<HTMLElement | null>(null)
+
   const [library, setLibrary] = useState<AggregatedLibrary | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [viewMode, setViewMode] = useState<LibraryViewMode>('grid')
-  const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
-  const [playStatus, setPlayStatus] = useState<PlayStatusFilterValue>('all')
-  const [librarySort, setLibrarySort] = useState<LibrarySort>('title')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState<LibraryViewMode>(() => scrollRestore?.viewMode ?? 'grid')
+  const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>(
+    () => scrollRestore?.selectedPlatforms ?? [],
+  )
+  const [playStatus, setPlayStatus] = useState<PlayStatusFilterValue>(
+    () => scrollRestore?.playStatus ?? 'all',
+  )
+  const [librarySort, setLibrarySort] = useState<LibrarySort>(
+    () => scrollRestore?.librarySort ?? 'title',
+  )
+  const [searchQuery, setSearchQuery] = useState(() => scrollRestore?.searchQuery ?? '')
   const [metacriticEnrichment, setMetacriticEnrichment] = useState<MetacriticEnrichmentUiState>({
     status: 'idle',
   })
@@ -186,7 +197,32 @@ export default function GameLibrary() {
   const isFiltered =
     selectedPlatforms.length > 0 || playStatus !== 'all' || searchQuery.trim().length > 0
 
+  const registerScrollContainer = useCallback((element: HTMLElement | null) => {
+    scrollContainerRef.current = element
+  }, [])
+
+  const onGameNavigate = useCallback(
+    (gameKey: string) => {
+      saveLibraryScrollRestore({
+        viewMode,
+        scrollTop: scrollContainerRef.current?.scrollTop ?? 0,
+        gameKey,
+        searchQuery,
+        selectedPlatforms,
+        playStatus,
+        librarySort,
+      })
+    },
+    [viewMode, searchQuery, selectedPlatforms, playStatus, librarySort],
+  )
+
+  const navigationContextValue = useMemo(
+    () => ({ onGameNavigate, registerScrollContainer }),
+    [onGameNavigate, registerScrollContainer],
+  )
+
   return (
+    <LibraryNavigationContext.Provider value={navigationContextValue}>
     <Profiler id={GAME_LIBRARY_PROFILER_ID} onRender={logGameLibraryRender}>
     <section className='rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.35)]'>
       <div className='flex flex-wrap items-center justify-between gap-4'>
@@ -265,9 +301,9 @@ export default function GameLibrary() {
               </div>
               {groupedGames.length > 0 ? (
                 viewMode === 'grid' ? (
-                  <GameGridView games={groupedGames} />
+                  <GameGridView games={groupedGames} scrollRestore={scrollRestore} />
                 ) : (
-                  <GameListView games={groupedGames} />
+                  <GameListView games={groupedGames} scrollRestore={scrollRestore} />
                 )
               ) : (
                 <p className='rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500'>
@@ -285,5 +321,6 @@ export default function GameLibrary() {
       )}
     </section>
     </Profiler>
+    </LibraryNavigationContext.Provider>
   )
 }

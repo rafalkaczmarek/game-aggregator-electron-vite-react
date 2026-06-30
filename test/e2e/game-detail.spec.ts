@@ -1,6 +1,6 @@
 /// <reference path="./global.d.ts" />
 
-import { createMockLibrary } from '@test/fixtures/games'
+import { createLargeMockLibrary, createMockLibrary } from '@test/fixtures/games'
 import { expect, goToAppPage, test, writeLibraryCache } from './fixtures'
 
 test.describe('game detail page', () => {
@@ -40,5 +40,36 @@ test.describe('game detail page', () => {
 
     await expect(page.getByText('Your games')).toBeVisible()
     await expect(page.getByTestId('game-detail-page')).toHaveCount(0)
+  })
+
+  test('restores grid scroll position when returning from game detail', async ({ page }) => {
+    const largeLibrary = createLargeMockLibrary(100)
+    await writeLibraryCache(page, largeLibrary)
+    await page.reload()
+    await goToAppPage(page, 'library')
+
+    const grid = page.getByTestId('game-library-grid')
+    const targetKey = 'game 0050'
+    const targetTitle = 'Game 0050'
+
+    await grid.evaluate((element) => {
+      element.scrollTop = 2_000
+    })
+
+    const scrollBefore = await grid.evaluate((element) => element.scrollTop)
+    expect(scrollBefore).toBeGreaterThan(0)
+
+    await page.getByTestId(`game-link-${targetKey}`).click()
+    await expect(page.getByTestId('game-detail-page')).toBeVisible()
+    await expect(page.getByRole('heading', { name: targetTitle })).toBeVisible()
+
+    await page.getByRole('button', { name: '← Back to library' }).click()
+    await expect(grid).toBeVisible()
+
+    await expect
+      .poll(async () => grid.evaluate((element) => element.scrollTop))
+      .toBeGreaterThanOrEqual(scrollBefore - 20)
+
+    await expect(grid.getByTestId(`game-link-${targetKey}`)).toBeVisible()
   })
 })

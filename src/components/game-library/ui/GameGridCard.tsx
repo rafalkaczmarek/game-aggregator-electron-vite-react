@@ -12,16 +12,19 @@ import {
 } from '../lib/grouping'
 import { formatPlaytime } from '../lib/playtime'
 import { gameDetailPath } from '../lib/paths'
+import { useLibraryNavigation } from '../context/LibraryNavigationContext'
 import type { GroupedGame } from '../lib/types'
 
 function GameGridCard({ game }: { game: GroupedGame }) {
   const coverGame = getGroupedGameCoverGame(game)
   const installed = isGroupedGameInstalled(game)
   const rating = getGroupedGameMetacritic(game)
+  const libraryNavigation = useLibraryNavigation()
 
   return (
     <Link
       to={gameDetailPath(game)}
+      onClick={() => libraryNavigation?.onGameNavigate(game.key)}
       className='block'
       data-testid={`game-link-${game.key}`}
     >

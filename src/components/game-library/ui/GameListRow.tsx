@@ -11,16 +11,19 @@ import {
 } from '../lib/grouping'
 import { formatPlaytime } from '../lib/playtime'
 import { gameDetailPath } from '../lib/paths'
+import { useLibraryNavigation } from '../context/LibraryNavigationContext'
 import type { GroupedGame } from '../lib/types'
 
 function GameListRow({ game }: { game: GroupedGame }) {
   const coverGame = getGroupedGameCoverGame(game)
   const installed = isGroupedGameInstalled(game)
   const rating = getGroupedGameMetacritic(game)
+  const libraryNavigation = useLibraryNavigation()
 
   return (
     <Link
       to={gameDetailPath(game)}
+      onClick={() => libraryNavigation?.onGameNavigate(game.key)}
       className='group flex items-center gap-3 bg-white px-3 py-0 transition hover:bg-slate-50'
       data-testid={`game-link-${game.key}`}
     >
