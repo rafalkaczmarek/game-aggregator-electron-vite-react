@@ -15,6 +15,13 @@ export const appRouter = createHashRouter([
           })),
       },
       {
+        path: 'library/:gameKey',
+        lazy: () =>
+          import('@src/components/game-library/GameDetail').then((module) => ({
+            Component: module.default,
+          })),
+      },
+      {
         path: 'recommendations',
         lazy: () =>
           import('@src/components/recommendations/Recommendations').then((module) => ({

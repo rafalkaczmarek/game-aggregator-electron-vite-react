@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Link } from 'react-router-dom'
 import GameCover from './GameCover'
 import MetacriticBadge from './MetacriticBadge'
 import { PlatformBadges } from './PlatformBadge'
@@ -9,6 +10,7 @@ import {
   isGroupedGameInstalled,
 } from '../lib/grouping'
 import { formatPlaytime } from '../lib/playtime'
+import { gameDetailPath } from '../lib/paths'
 import type { GroupedGame } from '../lib/types'
 
 function GameListRow({ game }: { game: GroupedGame }) {
@@ -17,7 +19,11 @@ function GameListRow({ game }: { game: GroupedGame }) {
   const rating = getGroupedGameMetacritic(game)
 
   return (
-    <div className='group flex items-center gap-3 bg-white px-3 py-0 transition hover:bg-slate-50'>
+    <Link
+      to={gameDetailPath(game)}
+      className='group flex items-center gap-3 bg-white px-3 py-0 transition hover:bg-slate-50'
+      data-testid={`game-link-${game.key}`}
+    >
       <GameCover
         game={coverGame}
         fill
@@ -38,7 +44,7 @@ function GameListRow({ game }: { game: GroupedGame }) {
         )}
         <PlatformBadges platforms={game.platforms} />
       </div>
-    </div>
+    </Link>
   )
 }
 

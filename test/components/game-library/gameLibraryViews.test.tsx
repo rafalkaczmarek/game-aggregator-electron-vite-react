@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import type { Game } from '@shared/types/game'
 import GameGridView from '@src/components/game-library/ui/GameGridView'
@@ -12,7 +13,11 @@ const groupedSampleGames = groupGamesByTitle(sampleGames)
 
 describe('game library views', () => {
   it('renders list view with titles, playtime, and platform badges', () => {
-    render(<GameListView games={groupedSampleGames} />)
+    render(
+      <MemoryRouter>
+        <GameListView games={groupedSampleGames} />
+      </MemoryRouter>,
+    )
 
     const list = screen.getByTestId('game-library-list')
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
@@ -23,7 +28,11 @@ describe('game library views', () => {
   })
 
   it('renders grid view with titles and installed badges', () => {
-    render(<GameGridView games={groupedSampleGames} />)
+    render(
+      <MemoryRouter>
+        <GameGridView games={groupedSampleGames} />
+      </MemoryRouter>,
+    )
 
     const grid = screen.getByTestId('game-library-grid')
     expect(within(grid).getAllByRole('article')).toHaveLength(3)
@@ -50,7 +59,11 @@ describe('game library views', () => {
       },
     ]
 
-    render(<GameListView games={groupGamesByTitle(duplicateGames)} />)
+    render(
+      <MemoryRouter>
+        <GameListView games={groupGamesByTitle(duplicateGames)} />
+      </MemoryRouter>,
+    )
 
     const list = screen.getByTestId('game-library-list')
     expect(within(list).getAllByRole('listitem')).toHaveLength(1)
@@ -77,7 +90,11 @@ describe('game library views', () => {
       },
     ]
 
-    render(<GameGridView games={groupGamesByTitle(duplicateGames)} />)
+    render(
+      <MemoryRouter>
+        <GameGridView games={groupGamesByTitle(duplicateGames)} />
+      </MemoryRouter>,
+    )
 
     const grid = screen.getByTestId('game-library-grid')
     expect(within(grid).getAllByRole('article')).toHaveLength(1)

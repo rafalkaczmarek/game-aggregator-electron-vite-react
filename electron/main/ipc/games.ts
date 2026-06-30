@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import type { GamePlatform } from '../../../shared/types/game'
+import type { GameDescriptionRequest, GamePlatform } from '../../../shared/types/game'
+import { fetchSteamStoreDescription } from '../../scanners/steam/storeDetails'
 import { GAME_PLATFORMS } from '../../../shared/types/game'
 import { createScopedLogger } from '../../lib/logger'
 import { getRecommendations } from '../../recommendations'
@@ -56,6 +57,17 @@ export function registerGameIpcHandlers(): void {
     logger.info('games:enrich-metacritic invoked', { gameCount: library.games.length })
     startMetacriticEnrichment(library)
     return { started: true as const }
+  })
+
+  ipcMain.handle('games:get-game-description', async (_event, request: GameDescriptionRequest) => {
+    if (request.platform === 'steam' && request.sourceId) {
+      const text = await fetchSteamStoreDescription(request.sourceId)
+      if (text) {
+        return { text, source: 'steam' as const }
+      }
+    }
+
+    return null
   })
 
   ipcMain.handle('games:scan-platform', (_event, platform: GamePlatform) => {

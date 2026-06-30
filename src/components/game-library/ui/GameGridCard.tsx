@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Link } from 'react-router-dom'
 import GameCover from './GameCover'
 import MetacriticBadge from './MetacriticBadge'
 import { PlatformBadges } from './PlatformBadge'
@@ -10,6 +11,7 @@ import {
   isGroupedGameInstalled,
 } from '../lib/grouping'
 import { formatPlaytime } from '../lib/playtime'
+import { gameDetailPath } from '../lib/paths'
 import type { GroupedGame } from '../lib/types'
 
 function GameGridCard({ game }: { game: GroupedGame }) {
@@ -18,6 +20,11 @@ function GameGridCard({ game }: { game: GroupedGame }) {
   const rating = getGroupedGameMetacritic(game)
 
   return (
+    <Link
+      to={gameDetailPath(game)}
+      className='block'
+      data-testid={`game-link-${game.key}`}
+    >
     <article
       className='group mx-auto overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-cyan-200 hover:shadow-md'
       style={{ width: `${GRID_CARD_WIDTH_SCALE * 100}%` }}
@@ -50,6 +57,7 @@ function GameGridCard({ game }: { game: GroupedGame }) {
         </div>
       </div>
     </article>
+    </Link>
   )
 }
 

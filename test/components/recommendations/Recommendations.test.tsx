@@ -19,6 +19,7 @@ describe('Recommendations', () => {
       scanAll: vi.fn(),
       enrichMetacritic: vi.fn(),
       scanPlatform: vi.fn(),
+      getGameDescription: vi.fn(),
       getRecommendations,
     }
     window.settingsApi = { get: settingsGet, update: vi.fn() }

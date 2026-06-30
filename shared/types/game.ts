@@ -62,11 +62,22 @@ export interface MetacriticRatingUpdate {
   rating: MetacriticRating
 }
 
+export interface GameDescription {
+  text: string
+  source: 'steam'
+}
+
+export interface GameDescriptionRequest {
+  platform: GamePlatform
+  sourceId?: string
+}
+
 export interface GameApi {
   getLibrary: () => Promise<AggregatedLibrary | null>
   scanAll: () => Promise<AggregatedLibrary>
   enrichMetacritic: () => Promise<{ started: true }>
   scanPlatform: (platform: GamePlatform) => Promise<ScanResult>
+  getGameDescription: (request: GameDescriptionRequest) => Promise<GameDescription | null>
   getRecommendations: (
     options?: import('./recommendations').RecommendationsOptions,
   ) => Promise<import('./recommendations').RecommendationsResult>

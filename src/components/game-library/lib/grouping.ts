@@ -19,6 +19,10 @@ function sortPlatforms(platforms: GamePlatform[]): GamePlatform[] {
   return [...platforms].sort((a, b) => GAME_PLATFORMS.indexOf(a) - GAME_PLATFORMS.indexOf(b))
 }
 
+export function findGroupedGameByKey(games: Game[], key: string): GroupedGame | undefined {
+  return groupGamesByTitle(games).find((group) => group.key === key)
+}
+
 export function groupGamesByTitle(games: Game[]): GroupedGame[] {
   const groups = new Map<string, GroupedGame>()
 

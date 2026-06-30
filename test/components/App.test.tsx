@@ -12,6 +12,7 @@ describe('App', () => {
       scanAll: vi.fn<GameApi['scanAll']>(),
       enrichMetacritic: vi.fn<GameApi['enrichMetacritic']>(),
       scanPlatform: vi.fn(),
+      getGameDescription: vi.fn<GameApi['getGameDescription']>().mockResolvedValue(null),
       getRecommendations: vi.fn<GameApi['getRecommendations']>().mockResolvedValue({
         owned: [],
         discover: [],

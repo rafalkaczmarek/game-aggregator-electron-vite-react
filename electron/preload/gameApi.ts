@@ -1,5 +1,10 @@
 import { ipcRenderer } from 'electron'
-import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
+import type {
+  AggregatedLibrary,
+  GameDescriptionRequest,
+  GamePlatform,
+  ScanResult,
+} from '../../shared/types/game'
 import type { RecommendationsOptions, RecommendationsResult } from '../../shared/types/recommendations'
 
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
@@ -61,6 +66,8 @@ export const gameApi = {
   enrichMetacritic: (): Promise<{ started: true }> => enrichMetacriticImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
+  getGameDescription: (request: GameDescriptionRequest) =>
+    ipcRenderer.invoke('games:get-game-description', request),
   getRecommendations: (options?: RecommendationsOptions): Promise<RecommendationsResult> =>
     getRecommendationsImpl(options),
 }

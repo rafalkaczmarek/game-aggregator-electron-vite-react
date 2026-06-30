@@ -1,9 +1,18 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
 import GameLibrary from '@src/components/game-library/GameLibrary'
 import { createMockLibrary, createDuplicateTitleLibrary } from '@test/fixtures/games'
+
+function renderGameLibrary() {
+  return render(
+    <MemoryRouter>
+      <GameLibrary />
+    </MemoryRouter>,
+  )
+}
 
 async function waitForLibraryShell() {
   await waitFor(() => {
@@ -30,6 +39,7 @@ describe('GameLibrary', () => {
       scanAll,
       enrichMetacritic,
       scanPlatform: vi.fn(),
+      getGameDescription: vi.fn<GameApi['getGameDescription']>().mockResolvedValue(null),
       getRecommendations: vi.fn<GameApi['getRecommendations']>().mockResolvedValue({
         owned: [],
         discover: [],
@@ -43,7 +53,7 @@ describe('GameLibrary', () => {
     getLibrary.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitFor(() => {
       expect(screen.getByText('Your games')).toBeInTheDocument()
     })
@@ -56,7 +66,7 @@ describe('GameLibrary', () => {
 
   it('registers incremental metacritic rating updates from ipc', async () => {
     getLibrary.mockResolvedValue(createMockLibrary())
-    render(<GameLibrary />)
+    renderGameLibrary()
 
     await waitFor(() => {
       expect(window.ipcRenderer.on).toHaveBeenCalledWith(
@@ -69,7 +79,7 @@ describe('GameLibrary', () => {
   it('shows metacritic badges as ratings arrive during enrichment', async () => {
     const library = createMockLibrary()
     getLibrary.mockResolvedValue(library)
-    render(<GameLibrary />)
+    renderGameLibrary()
 
     await waitFor(() => {
       expect(screen.getByText('Your games')).toBeInTheDocument()
@@ -98,7 +108,7 @@ describe('GameLibrary', () => {
   it('applies multiple incremental metacritic updates', async () => {
     const library = createMockLibrary()
     getLibrary.mockResolvedValue(library)
-    render(<GameLibrary />)
+    renderGameLibrary()
 
     await waitFor(() => {
       expect(screen.getByText('Your games')).toBeInTheDocument()
@@ -131,7 +141,7 @@ describe('GameLibrary', () => {
 
   it('shows metacritic enrichment progress from ipc events', async () => {
     getLibrary.mockResolvedValue(createMockLibrary())
-    render(<GameLibrary />)
+    renderGameLibrary()
 
     await waitFor(() => {
       expect(window.ipcRenderer.on).toHaveBeenCalledWith(
@@ -157,7 +167,7 @@ describe('GameLibrary', () => {
   it('loads cached library on mount', async () => {
     getLibrary.mockResolvedValue(createMockLibrary())
 
-    render(<GameLibrary />)
+    renderGameLibrary()
 
     await waitFor(() => {
       expect(screen.getByText('Your games')).toBeInTheDocument()
@@ -171,7 +181,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -194,7 +204,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -215,7 +225,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary([]))
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -231,7 +241,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createDuplicateTitleLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -251,7 +261,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createDuplicateTitleLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -266,7 +276,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -286,7 +296,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -302,7 +312,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -320,7 +330,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -340,7 +350,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -361,7 +371,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
@@ -381,7 +391,7 @@ describe('GameLibrary', () => {
     scanAll.mockResolvedValue(createMockLibrary())
     const user = userEvent.setup()
 
-    render(<GameLibrary />)
+    renderGameLibrary()
     await waitForLibraryShell()
     await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
 
