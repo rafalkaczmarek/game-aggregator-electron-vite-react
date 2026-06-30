@@ -1,6 +1,6 @@
 /// <reference path="./global.d.ts" />
 
-import { createLargeMockLibrary } from '../fixtures/games'
+import { createLargeMockLibrary } from '@test/fixtures/games'
 import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 const LARGE_LIBRARY_SIZE = 100

@@ -13,7 +13,7 @@ import {
 import type { BrowserWindow } from 'electron'
 import type { AggregatedLibrary } from '@shared/types/game'
 import type { RecommendationsResult } from '@shared/types/recommendations'
-import type { PsnE2eFixture } from '../../electron/scanners/psn/e2e'
+import type { PsnE2eFixture } from '@electron/scanners/psn/e2e'
 import {
   collectRendererCoverage,
   e2eCoverageEnabled,
@@ -180,7 +180,7 @@ export async function setEnrichMetacriticFromCacheMode(page: Page, enabled: bool
 
 export async function writeMetacriticCache(
   page: Page,
-  cache: import('../../electron/metadata/metacritic/cache').MetacriticCacheFile,
+  cache: import('@electron/metadata/metacritic/cache').MetacriticCacheFile,
 ) {
   await page.evaluate((data) => window.__e2e.writeMetacriticCache(data), cache)
 }

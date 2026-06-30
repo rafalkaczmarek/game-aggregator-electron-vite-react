@@ -1,7 +1,7 @@
 /// <reference path="./global.d.ts" />
 
 import type { Page } from '@playwright/test'
-import { createDuplicateTitleLibrary, createMockLibrary, createMockLibraryWithMetacritic } from '../fixtures/games'
+import { createDuplicateTitleLibrary, createMockLibrary, createMockLibraryWithMetacritic } from '@test/fixtures/games'
 import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 async function getVisibleGameTitles(page: Page, view: 'grid' | 'list' = 'grid') {

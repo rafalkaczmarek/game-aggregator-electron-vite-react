@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.node.json",
   "compilerOptions": {
     "paths": {
-      "@shared/*": ["../../shared/*"]
+      "@shared/*": ["../../shared/*"],
+      "@electron/*": ["../../electron/*"],
+      "@test/*": ["../*"]
     }
   },
   "include": ["./**/*", "../../shared/types/**/*", "../fixtures/**/*"]

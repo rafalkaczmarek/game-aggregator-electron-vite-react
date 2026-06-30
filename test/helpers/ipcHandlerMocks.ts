@@ -40,27 +40,27 @@ vi.mock('electron', () => ({
   },
 }))
 
-vi.mock('../../electron/scanners', () => ({
+vi.mock('@electron/scanners', () => ({
   scanAllGames,
   scanAllGamesWithoutMetacritic: scanAllGames,
   scanPlatform,
 }))
 
-vi.mock('../../electron/main/library/store', () => ({
+vi.mock('@electron/main/library/store', () => ({
   readCachedLibrary,
   writeCachedLibrary,
   clearCachedLibrary,
 }))
 
-vi.mock('../../electron/scanners/gog/paths', () => ({
+vi.mock('@electron/scanners/gog/paths', () => ({
   setE2eGalaxyDbPath,
 }))
 
-vi.mock('../../electron/scanners/psn/e2e', () => ({
+vi.mock('@electron/scanners/psn/e2e', () => ({
   setE2ePsnFixture,
 }))
 
-vi.mock('../../electron/main/settings/store', () => ({
+vi.mock('@electron/main/settings/store', () => ({
   getSettingsState,
   updateSteamApiKey,
   updateGithubPat,
@@ -69,21 +69,21 @@ vi.mock('../../electron/main/settings/store', () => ({
   updatePsnOnlineId,
 }))
 
-vi.mock('../../electron/metadata/metacritic', () => ({
+vi.mock('@electron/metadata/metacritic', () => ({
   enrichLibraryWithMetacritic,
 }))
 
-vi.mock('../../electron/recommendations', () => ({
+vi.mock('@electron/recommendations', () => ({
   getRecommendations,
 }))
 
-vi.mock('../../electron/main/ipc/broadcast', () => ({
+vi.mock('@electron/main/ipc/broadcast', () => ({
   broadcastToRenderers,
 }))
 
 export async function registerIpcHandlers() {
-  const { registerGameIpcHandlers } = await import('../../electron/main/ipc/games')
-  const { registerSettingsIpcHandlers } = await import('../../electron/main/ipc/settings')
+  const { registerGameIpcHandlers } = await import('@electron/main/ipc/games')
+  const { registerSettingsIpcHandlers } = await import('@electron/main/ipc/settings')
   registerGameIpcHandlers()
   registerSettingsIpcHandlers()
 }

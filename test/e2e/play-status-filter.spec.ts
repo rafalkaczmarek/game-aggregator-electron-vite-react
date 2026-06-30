@@ -1,6 +1,6 @@
 /// <reference path="./global.d.ts" />
 
-import { createDuplicateTitleLibrary, createMockLibrary } from '../fixtures/games'
+import { createDuplicateTitleLibrary, createMockLibrary } from '@test/fixtures/games'
 import { expect, goToAppPage, setScanAllMock, test } from './fixtures'
 
 test.describe('play status filter', () => {

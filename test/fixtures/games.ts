@@ -1,7 +1,7 @@
 import type { AggregatedLibrary, Game, MetacriticRating } from '@shared/types/game'
-import { METACRITIC_PLATFORM_CANDIDATES } from '../../electron/metadata/metacritic/platforms'
-import type { MetacriticCacheFile } from '../../electron/metadata/metacritic/cache'
-import { cacheKey } from '../../electron/metadata/metacritic/slug'
+import { METACRITIC_PLATFORM_CANDIDATES } from '@electron/metadata/metacritic/platforms'
+import type { MetacriticCacheFile } from '@electron/metadata/metacritic/cache'
+import { cacheKey } from '@electron/metadata/metacritic/slug'
 
 export const sampleGames: Game[] = [
   {

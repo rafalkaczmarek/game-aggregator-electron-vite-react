@@ -6,7 +6,7 @@ import {
   createMockLibrary,
   createMockLibraryWithMetacritic,
   withMetacriticRatings,
-} from '../fixtures/games'
+} from '@test/fixtures/games'
 import {
   clearLibraryCache,
   clearMetacriticCache,

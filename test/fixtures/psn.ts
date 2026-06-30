@@ -1,4 +1,4 @@
-import type { PsnE2eFixture } from '../../electron/scanners/psn/e2e'
+import type { PsnE2eFixture } from '@electron/scanners/psn/e2e'
 import { createPlayedGame } from './psnPlayed'
 
 export const psnPurchasedGamesFixture: PsnE2eFixture = {

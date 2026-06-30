@@ -20,7 +20,9 @@
     "jsx": "react-jsx",
     "paths": {
       "@src/*": ["./src/*"],
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "@electron/*": ["./electron/*"],
+      "@test/*": ["./test/*"]
     }
   },
   "include": ["src", "shared", "test"],

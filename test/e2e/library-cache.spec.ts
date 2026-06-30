@@ -1,6 +1,6 @@
 /// <reference path="./global.d.ts" />
 
-import { createMockLibrary } from '../fixtures/games'
+import { createMockLibrary } from '@test/fixtures/games'
 import { clearLibraryCache, expect, goToAppPage, setScanAllMock, test, writeLibraryCache } from './fixtures'
 
 test.describe('library cache', () => {

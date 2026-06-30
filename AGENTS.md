@@ -81,7 +81,7 @@ Spójne nazewnictwo ułatwia nawigację i importy. Zasady poniżej — nowe plik
 Testy komponentów: nazwa pliku = nazwa komponentu + `.test.tsx`.  
 Testy modułów bez odpowiednika komponentu: camelCase opisujący testowany moduł (np. `libraryStore.test.ts` dla `electron/main/library/store.ts`).
 
-**Nie mieszaj** kebab-case i PascalCase w `test/` (poza `test/e2e/`, gdzie kebab-case jest standardem Playwright).
+**Nie mieszaj** kebab-case i PascalCase w `test/` (poza `test/e2e/`, gdzie kebab-case jest standardem Playwright). Testy unitowe grupuj w `test/components/` i `test/electron/` zgodnie ze strukturą źródeł — nie wrzucaj nowych plików płasko do `test/`.
 
 ### Importy
 
@@ -124,12 +124,38 @@ Filtry platformy i statusu **łączą się** (AND). Pusty komunikat: „No games
 
 ## Testy
 
-### Unit (`test/`)
+### Struktura `test/`
+
+```
+test/
+├── setup.ts              # Vitest setup (jsdom mocks, ipcRenderer stub)
+├── smoke/                # Smoke / sanity checks
+├── fixtures/             # Dane testowe (gry, VDF, GOG DB, PSN)
+├── helpers/              # Współdzielone helpery (IPC mocks, ścieżki fixture)
+├── components/           # Testy UI — lustrzane odbicie `src/components/`
+│   ├── game-library/
+│   ├── recommendations/
+│   └── settings/
+├── electron/             # Testy main process — lustrzane odbicie `electron/`
+│   ├── ipc/
+│   ├── library/
+│   ├── lib/
+│   ├── settings/
+│   ├── scanners/         # steam/, gog/, psn/, …
+│   ├── metadata/
+│   └── recommendations/
+└── e2e/                  # Playwright (kebab-case `*.spec.ts`)
+```
+
+Aliasy importów w testach: `@test/fixtures/...`, `@test/helpers/...`, `@electron/...` (oraz `@src/`, `@shared/`).
+
+### Unit (`test/` poza `e2e/`)
 
 - Pliki testowe: komponenty → `PascalCase.test.tsx`, moduły → `camelCase.test.ts` (patrz sekcja „Konwencje nazw plików”)
 - Importy z `game-library`: preferuj `@src/components/game-library/lib/format` lub konkretny moduł z `lib/`
 - Importy komponentów UI: `@src/components/game-library/ui/...`
 - Importy settings: `@src/components/settings/lib/...`, `@src/components/settings/Settings`
+- Fixture'y i ścieżki dyskowe: `@test/fixtures/...`, `fixturePath()` / `testTmpDir()` z `@test/helpers/paths`
 
 ### E2E (`test/e2e/`)
 

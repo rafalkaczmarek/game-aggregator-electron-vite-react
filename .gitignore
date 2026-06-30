@@ -36,4 +36,5 @@ yarn.lock
 
 test/screenshots
 test/e2e-user-data
+test/.tmp
 .vscode/changelists.json

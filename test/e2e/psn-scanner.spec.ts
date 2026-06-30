@@ -2,7 +2,7 @@
 
 import path from 'node:path'
 import { configurePsnScan, expect, goToAppPage, root, setGogGalaxyDb, setScanAllMock, test } from './fixtures'
-import { psnPurchasedGamesFixture } from '../fixtures/psn'
+import { psnPurchasedGamesFixture } from '@test/fixtures/psn'
 
 test.describe('PSN scanner', () => {
   const fixtureDb = path.join(root, 'test', 'fixtures', 'gog', 'galaxy-2.0.db')
