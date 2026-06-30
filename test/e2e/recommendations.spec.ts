@@ -5,7 +5,9 @@ import {
   clearLibraryCache,
   configureGithubPat,
   expect,
+  getLastRecommendationsOptions,
   goToAppPage,
+  resetLastRecommendationsOptions,
   setRecommendationsMock,
   test,
   writeLibraryCache,
@@ -59,6 +61,25 @@ test.describe('recommendations', () => {
     await expect(section).toBeVisible()
     await expect(section.getByText('Rekomendacje', { exact: true })).toBeVisible()
     await expect(page.getByTestId('generate-recommendations')).toBeVisible()
+    await expect(page.getByTestId('recommendations-user-message')).toBeVisible()
+    await expect(page.getByLabel(/Dodatkowe wskazówki/i)).toBeVisible()
+  })
+
+  test('passes user message when generating recommendations', async ({ page }) => {
+    await writeLibraryCache(page, createMockLibrary())
+    await configureGithubPat(page)
+    await page.reload()
+    await goToAppPage(page, 'recommendations')
+    await setRecommendationsMock(page, mockRecommendations)
+    await resetLastRecommendationsOptions(page)
+
+    await page.getByTestId('recommendations-user-message').fill('gry indie i RPG')
+    await page.getByTestId('generate-recommendations').click()
+
+    await expect(page.getByText('Hades')).toBeVisible()
+    await expect.poll(async () => getLastRecommendationsOptions(page)).toEqual({
+      userMessage: 'gry indie i RPG',
+    })
   })
 
   test('generates and displays mocked recommendations', async ({ page }) => {

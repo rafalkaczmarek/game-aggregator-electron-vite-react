@@ -173,6 +173,31 @@ describe('prompt token budget', () => {
     expect(prompt).not.toContain('KATALOG_NIEZAGRANY')
   })
 
+  it('includes optional user message in the prompt', () => {
+    const snapshot = buildLibrarySnapshot(games)
+    const { prompt } = buildUserPrompt(snapshot, snapshot.played.length, 'gry indie i RPG')
+
+    expect(prompt).toContain('DODATKOWE WSKAZÓWKI OD UŻYTKOWNIKA')
+    expect(prompt).toContain('gry indie i RPG')
+    expect(prompt).toContain('Uwzględnij te preferencje przy wyborze rekomendacji.')
+  })
+
+  it('omits blank user message from the prompt', () => {
+    const snapshot = buildLibrarySnapshot(games)
+    const { prompt } = buildUserPrompt(snapshot, snapshot.played.length, '   ')
+
+    expect(prompt).not.toContain('DODATKOWE WSKAZÓWKI OD UŻYTKOWNIKA')
+  })
+
+  it('truncates user message to max length in the prompt', () => {
+    const snapshot = buildLibrarySnapshot(games)
+    const longMessage = 'x'.repeat(600)
+    const { prompt } = buildUserPrompt(snapshot, snapshot.played.length, longMessage)
+
+    expect(prompt).toContain('x'.repeat(500))
+    expect(prompt).not.toContain('x'.repeat(501))
+  })
+
   it('fits as many played titles as possible within the token budget', () => {
     const snapshot = buildLibrarySnapshot(createLargeLibrary(500))
     const { stats } = buildPromptWithinTokenBudget(snapshot, 'openai/gpt-4.1-mini')

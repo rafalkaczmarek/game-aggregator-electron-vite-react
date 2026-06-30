@@ -1,5 +1,6 @@
 import type { LibrarySnapshot } from './librarySnapshot'
 import { createScopedLogger } from '../lib/logger'
+import { MAX_USER_MESSAGE_LENGTH } from '../../shared/types/recommendations'
 import {
   GITHUB_MODELS_INPUT_TOKEN_LIMIT,
   GITHUB_MODELS_PROMPT_TOKEN_BUDGET,
@@ -20,6 +21,12 @@ export const RECOMMENDATION_TOTAL = OWNED_LIMIT + DISCOVER_LIMIT
 
 const MIN_PLAYED = 8
 
+function normalizeUserMessage(userMessage?: string): string | undefined {
+  const trimmed = userMessage?.trim()
+  if (!trimmed) return undefined
+  return trimmed.slice(0, MAX_USER_MESSAGE_LENGTH)
+}
+
 function formatPlaytime(minutes: number): string {
   const hours = minutes / 60
   return hours >= 10 ? `${Math.round(hours)} h` : `${hours.toFixed(1)} h`
@@ -28,6 +35,7 @@ function formatPlaytime(minutes: number): string {
 export function buildUserPrompt(
   snapshot: LibrarySnapshot,
   maxPlayed: number,
+  userMessage?: string,
 ): { prompt: string; playedIncluded: number } {
   const played = snapshot.played.slice(0, maxPlayed)
 
@@ -36,12 +44,24 @@ export function buildUserPrompt(
       `- ${entry.title} (${formatPlaytime(entry.playtimeMinutes)}, ${entry.platforms.join('/')})`,
   )
 
+  const preferenceLines = (() => {
+    const message = normalizeUserMessage(userMessage)
+    if (!message) return []
+    return [
+      '',
+      'DODATKOWE WSKAZÓWKI OD UŻYTKOWNIKA:',
+      message,
+      'Uwzględnij te preferencje przy wyborze rekomendacji.',
+    ]
+  })()
+
   const prompt = [
     'Jesteś asystentem rekomendacji gier. Znasz wyłącznie gry, w które użytkownik już grał (lista ZAGRANE).',
     `Na tej podstawie zaproponuj dokładnie ${RECOMMENDATION_TOTAL} gier, które mogłyby mu się spodobać.`,
     'Nie powtarzaj tytułów z listy ZAGRANE.',
     'Dla każdej propozycji podaj krótki powód po polsku (1-2 zdania), konkretny i osobisty.',
     'Uwzględnij czas gry — dłuższe sesje ważą więcej przy profilowaniu gustu.',
+    ...preferenceLines,
     'Odpowiedz wyłącznie poprawnym JSON bez markdown:',
     '{"recommendations":[{"title":"...","reason":"..."}]}',
     '',
@@ -67,10 +87,11 @@ function buildRequestBody(model: string, userPrompt: string): string {
 export function buildPromptWithinTokenBudget(
   snapshot: LibrarySnapshot,
   model: string,
+  userMessage?: string,
 ): { userPrompt: string; stats: PromptTokenStats } {
   let maxPlayed = snapshot.played.length
 
-  let built = buildUserPrompt(snapshot, maxPlayed)
+  let built = buildUserPrompt(snapshot, maxPlayed, userMessage)
   let requestBody = buildRequestBody(model, built.prompt)
   let tokenEstimate = estimateMessagesTokens(SYSTEM_MESSAGE, built.prompt, requestBody)
 
@@ -79,7 +100,7 @@ export function buildPromptWithinTokenBudget(
     maxPlayed > MIN_PLAYED
   ) {
     maxPlayed = Math.max(MIN_PLAYED, maxPlayed - 10)
-    built = buildUserPrompt(snapshot, maxPlayed)
+    built = buildUserPrompt(snapshot, maxPlayed, userMessage)
     requestBody = buildRequestBody(model, built.prompt)
     tokenEstimate = estimateMessagesTokens(SYSTEM_MESSAGE, built.prompt, requestBody)
   }

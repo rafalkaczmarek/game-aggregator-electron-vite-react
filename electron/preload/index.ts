@@ -1,14 +1,26 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import type { AggregatedLibrary, GamePlatform, ScanResult } from '../../shared/types/game'
-import type { RecommendationsResult } from '../../shared/types/recommendations'
+import type { RecommendationsOptions, RecommendationsResult } from '../../shared/types/recommendations'
 import type { SettingsApi, SettingsState, SettingsUpdate } from '../../shared/types/settings'
 import type { PsnE2eFixture } from '../scanners/psn/e2e'
 
 let scanAllImpl: () => Promise<AggregatedLibrary> = () => ipcRenderer.invoke('games:scan-all')
 let enrichMetacriticImpl: () => Promise<{ started: true }> = () =>
   ipcRenderer.invoke('games:enrich-metacritic')
-let getRecommendationsImpl: () => Promise<RecommendationsResult> = () =>
-  ipcRenderer.invoke('games:get-recommendations')
+let lastRecommendationsOptions: RecommendationsOptions | undefined
+
+function createGetRecommendationsImpl(
+  invoke: (options?: RecommendationsOptions) => Promise<RecommendationsResult>,
+) {
+  return (options?: RecommendationsOptions) => {
+    lastRecommendationsOptions = options
+    return invoke(options)
+  }
+}
+
+let getRecommendationsImpl = createGetRecommendationsImpl((options) =>
+  ipcRenderer.invoke('games:get-recommendations', options),
+)
 
 const gameApi = {
   getLibrary: (): Promise<AggregatedLibrary | null> => ipcRenderer.invoke('games:get-library'),
@@ -16,7 +28,8 @@ const gameApi = {
   enrichMetacritic: (): Promise<{ started: true }> => enrichMetacriticImpl(),
   scanPlatform: (platform: GamePlatform): Promise<ScanResult> =>
     ipcRenderer.invoke('games:scan-platform', platform),
-  getRecommendations: (): Promise<RecommendationsResult> => getRecommendationsImpl(),
+  getRecommendations: (options?: RecommendationsOptions): Promise<RecommendationsResult> =>
+    getRecommendationsImpl(options),
 }
 
 const settingsApi: SettingsApi = {
@@ -46,9 +59,17 @@ contextBridge.exposeInMainWorld('__e2e', {
     return ipcRenderer.invoke('e2e:set-psn-fixture', fixture)
   },
   setRecommendationsMock(result: RecommendationsResult | null) {
-    getRecommendationsImpl = result
-      ? () => Promise.resolve(result)
-      : () => ipcRenderer.invoke('games:get-recommendations')
+    getRecommendationsImpl = createGetRecommendationsImpl(
+      result
+        ? () => Promise.resolve(result)
+        : (options) => ipcRenderer.invoke('games:get-recommendations', options),
+    )
+  },
+  getLastRecommendationsOptions() {
+    return lastRecommendationsOptions
+  },
+  resetLastRecommendationsOptions() {
+    lastRecommendationsOptions = undefined
   },
   setEnrichMetacriticMock(result: AggregatedLibrary | null) {
     enrichMetacriticImpl = result

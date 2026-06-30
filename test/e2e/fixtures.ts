@@ -158,6 +158,14 @@ export async function setRecommendationsMock(page: Page, result: Recommendations
   }, result)
 }
 
+export async function resetLastRecommendationsOptions(page: Page) {
+  await page.evaluate(() => window.__e2e.resetLastRecommendationsOptions())
+}
+
+export async function getLastRecommendationsOptions(page: Page) {
+  return page.evaluate(() => window.__e2e.getLastRecommendationsOptions())
+}
+
 export async function setEnrichMetacriticMock(page: Page, library: AggregatedLibrary | null) {
   await page.evaluate((data) => {
     window.__e2e.setEnrichMetacriticMock(data)

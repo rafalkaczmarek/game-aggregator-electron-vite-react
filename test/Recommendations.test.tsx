@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MAX_USER_MESSAGE_LENGTH } from '@shared/types/recommendations'
 import type { GameApi } from '@shared/types/game'
 import type { SettingsApi } from '@shared/types/settings'
 import Recommendations from '@src/components/recommendations/Recommendations'
@@ -133,5 +134,64 @@ describe('Recommendations', () => {
     await waitFor(() => {
       expect(screen.getByText('API padło')).toBeInTheDocument()
     })
+  })
+
+  it('passes user message to gameApi when generating recommendations', async () => {
+    const user = userEvent.setup()
+    getRecommendations.mockResolvedValue({
+      owned: [],
+      discover: [{ title: 'Hades', reason: 'Indie', source: 'discover' }],
+      errors: [],
+      basedOnPlayedCount: 3,
+    })
+
+    render(<Recommendations />)
+    await user.type(screen.getByTestId('recommendations-user-message'), 'gry indie')
+    await user.click(screen.getByTestId('generate-recommendations'))
+
+    await waitFor(() => {
+      expect(getRecommendations).toHaveBeenCalledWith({ userMessage: 'gry indie' })
+    })
+  })
+
+  it('renders optional user message field', () => {
+    render(<Recommendations />)
+
+    expect(screen.getByLabelText(/Dodatkowe wskazówki/i)).toBeInTheDocument()
+    expect(screen.getByTestId('recommendations-user-message')).toHaveAttribute(
+      'placeholder',
+      expect.stringContaining('indie'),
+    )
+  })
+
+  it('omits options when user message is empty or whitespace', async () => {
+    const user = userEvent.setup()
+    getRecommendations.mockResolvedValue({
+      owned: [],
+      discover: [],
+      errors: [],
+      basedOnPlayedCount: 1,
+    })
+
+    render(<Recommendations />)
+    await user.type(screen.getByTestId('recommendations-user-message'), '   ')
+    await user.click(screen.getByTestId('generate-recommendations'))
+
+    await waitFor(() => {
+      expect(getRecommendations).toHaveBeenCalledWith(undefined)
+    })
+  })
+
+  it('caps user message at max length', async () => {
+    const user = userEvent.setup()
+    const longMessage = 'a'.repeat(MAX_USER_MESSAGE_LENGTH + 20)
+
+    render(<Recommendations />)
+    await user.click(screen.getByTestId('recommendations-user-message'))
+    await user.paste(longMessage)
+
+    expect(screen.getByTestId('recommendations-user-message')).toHaveValue(
+      'a'.repeat(MAX_USER_MESSAGE_LENGTH),
+    )
   })
 })

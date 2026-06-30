@@ -67,4 +67,22 @@ describe('getRecommendations', () => {
     expect(result.owned).toEqual([])
     expect(result.errors[0]).toContain('413')
   })
+
+  it('forwards user message to AI recommendations', async () => {
+    getAiRecommendations.mockResolvedValue({
+      owned: [],
+      discover: [{ title: 'Hades', reason: 'Indie', source: 'discover' }],
+      errors: [],
+    })
+
+    await getRecommendations(createMockLibrary(), 'ghp_test', {
+      userMessage: 'gry indie',
+    })
+
+    expect(getAiRecommendations).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      { userMessage: 'gry indie' },
+    )
+  })
 })

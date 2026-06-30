@@ -27,8 +27,15 @@ interface AiRecommendationResponse {
   discover?: AiRecommendationItem[]
 }
 
+export interface AiRecommendationsRequestOptions {
+  userMessage?: string
+}
+
 export interface AiRecommendationsClient {
-  requestRecommendations: (snapshot: LibrarySnapshot) => Promise<AiRecommendationItem[]>
+  requestRecommendations: (
+    snapshot: LibrarySnapshot,
+    options?: AiRecommendationsRequestOptions,
+  ) => Promise<AiRecommendationItem[]>
 }
 
 function extractJsonContent(content: string): string {
@@ -74,8 +81,12 @@ export function createGitHubModelsRecommendationsClient(pat: string): AiRecommen
   const model = process.env.GITHUB_MODELS_MODEL?.trim() || DEFAULT_MODEL
 
   return {
-    async requestRecommendations(snapshot) {
-      const { userPrompt, stats } = buildPromptWithinTokenBudget(snapshot, model)
+    async requestRecommendations(snapshot, options) {
+      const { userPrompt, stats } = buildPromptWithinTokenBudget(
+        snapshot,
+        model,
+        options?.userMessage,
+      )
 
       const response = await fetch(GITHUB_MODELS_URL, {
         method: 'POST',
@@ -175,8 +186,9 @@ export function mapAiRecommendations(
 export async function getAiRecommendations(
   snapshot: LibrarySnapshot,
   client: AiRecommendationsClient,
+  options?: AiRecommendationsRequestOptions,
 ): Promise<{ owned: GameRecommendation[]; discover: GameRecommendation[]; errors: string[] }> {
-  const items = await client.requestRecommendations(snapshot)
+  const items = await client.requestRecommendations(snapshot, options)
   return mapAiRecommendations(items, snapshot)
 }
 

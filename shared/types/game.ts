@@ -67,5 +67,7 @@ export interface GameApi {
   scanAll: () => Promise<AggregatedLibrary>
   enrichMetacritic: () => Promise<{ started: true }>
   scanPlatform: (platform: GamePlatform) => Promise<ScanResult>
-  getRecommendations: () => Promise<import('./recommendations').RecommendationsResult>
+  getRecommendations: (
+    options?: import('./recommendations').RecommendationsOptions,
+  ) => Promise<import('./recommendations').RecommendationsResult>
 }

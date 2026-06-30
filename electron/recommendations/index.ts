@@ -1,5 +1,5 @@
 import type { AggregatedLibrary } from '../../shared/types/game'
-import type { RecommendationsResult } from '../../shared/types/recommendations'
+import type { RecommendationsOptions, RecommendationsResult } from '../../shared/types/recommendations'
 import { createScopedLogger } from '../lib/logger'
 import { buildLibrarySnapshot, createGitHubModelsRecommendationsClient, getAiRecommendations } from './ai'
 
@@ -8,6 +8,7 @@ const logger = createScopedLogger('recommendations')
 export async function getRecommendations(
   library: AggregatedLibrary,
   pat: string | undefined,
+  options?: RecommendationsOptions,
 ): Promise<RecommendationsResult> {
   if (!pat) {
     logger.warn('GitHub PAT not configured')
@@ -39,7 +40,9 @@ export async function getRecommendations(
       unplayedCount: snapshot.unplayed.length,
     })
     const client = createGitHubModelsRecommendationsClient(pat)
-    const { owned, discover, errors } = await getAiRecommendations(snapshot, client)
+    const { owned, discover, errors } = await getAiRecommendations(snapshot, client, {
+      userMessage: options?.userMessage,
+    })
 
     if (owned.length === 0 && snapshot.unplayed.length > 0) {
       errors.push(

@@ -74,7 +74,7 @@ export function registerGameIpcHandlers(): void {
     })
   })
 
-  ipcMain.handle('games:get-recommendations', async () => {
+  ipcMain.handle('games:get-recommendations', async (_event, options) => {
     logger.info('games:get-recommendations invoked')
     const library = await readCachedLibrary()
     if (!library) {
@@ -87,7 +87,7 @@ export function registerGameIpcHandlers(): void {
       }
     }
     const pat = await getGithubPat()
-    const result = await getRecommendations(library, pat)
+    const result = await getRecommendations(library, pat, options)
     logger.info('games:get-recommendations finished', {
       ownedCount: result.owned.length,
       discoverCount: result.discover.length,

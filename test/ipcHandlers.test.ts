@@ -206,14 +206,35 @@ describe('ipc handlers', () => {
     getGithubPat.mockResolvedValue('ghp_test')
     getRecommendations.mockResolvedValue(recommendations)
 
-    await expect(handlers.get('games:get-recommendations')!()).resolves.toEqual(recommendations)
-    expect(getRecommendations).toHaveBeenCalledWith(library, 'ghp_test')
+    await expect(handlers.get('games:get-recommendations')!(null)).resolves.toEqual(recommendations)
+    expect(getRecommendations).toHaveBeenCalledWith(library, 'ghp_test', undefined)
+  })
+
+  it('passes user message to recommendations service', async () => {
+    const library = createMockLibrary()
+    const recommendations = {
+      owned: [],
+      discover: [{ title: 'Hades', reason: 'Indie hit' }],
+      errors: [],
+      basedOnPlayedCount: 2,
+    }
+
+    readCachedLibrary.mockResolvedValue(library)
+    getGithubPat.mockResolvedValue('ghp_test')
+    getRecommendations.mockResolvedValue(recommendations)
+
+    await expect(
+      handlers.get('games:get-recommendations')!(null, { userMessage: 'gry indie' }),
+    ).resolves.toEqual(recommendations)
+    expect(getRecommendations).toHaveBeenCalledWith(library, 'ghp_test', {
+      userMessage: 'gry indie',
+    })
   })
 
   it('returns empty recommendations when library cache is missing', async () => {
     readCachedLibrary.mockResolvedValue(null)
 
-    await expect(handlers.get('games:get-recommendations')!()).resolves.toEqual({
+    await expect(handlers.get('games:get-recommendations')!(null)).resolves.toEqual({
       owned: [],
       discover: [],
       errors: ['Brak zeskanowanej biblioteki — najpierw uruchom skanowanie.'],

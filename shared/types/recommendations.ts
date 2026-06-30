@@ -1,5 +1,7 @@
 import type { GamePlatform } from './game'
 
+export const MAX_USER_MESSAGE_LENGTH = 500
+
 export type RecommendationSource = 'owned' | 'discover'
 
 export interface GameRecommendation {
@@ -20,6 +22,11 @@ export interface RecommendationsResult {
   basedOnPlayedCount: number
 }
 
+export interface RecommendationsOptions {
+  /** Short free-text hint included in the AI prompt (genre, mood, indie, etc.). */
+  userMessage?: string
+}
+
 export interface RecommendationsApi {
-  getRecommendations: () => Promise<RecommendationsResult>
+  getRecommendations: (options?: RecommendationsOptions) => Promise<RecommendationsResult>
 }
