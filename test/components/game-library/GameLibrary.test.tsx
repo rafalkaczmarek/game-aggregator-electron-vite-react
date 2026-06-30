@@ -1,9 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameApi } from '@shared/types/game'
 import GameLibrary from '@src/components/game-library/GameLibrary'
+import { consumeLibraryScrollRestore, saveLibraryScrollRestore } from '@src/components/game-library/lib/libraryScrollRestore'
 import { createMockLibrary, createDuplicateTitleLibrary } from '@test/fixtures/games'
 
 function renderGameLibrary() {
@@ -27,6 +28,7 @@ describe('GameLibrary', () => {
   const getLibrary = vi.fn<GameApi['getLibrary']>()
 
   beforeEach(() => {
+    sessionStorage.clear()
     scanAll.mockReset()
     enrichMetacritic.mockReset()
     enrichMetacritic.mockResolvedValue({ started: true })
@@ -403,5 +405,61 @@ describe('GameLibrary', () => {
 
     expect(screen.getByText(/No games match the current filters/i)).toBeInTheDocument()
     expect(screen.queryByTestId('game-library-grid')).not.toBeInTheDocument()
+  })
+
+  it('saves scroll restore state when a game link is clicked', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/library']}>
+        <Routes>
+          <Route path='/library' element={<GameLibrary />} />
+          <Route path='/library/:gameKey' element={<div>Game detail</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    const grid = screen.getByTestId('game-library-grid')
+    grid.scrollTop = 180
+
+    await user.click(screen.getByTestId('game-link-dota 2'))
+
+    expect(consumeLibraryScrollRestore()).toMatchObject({
+      viewMode: 'grid',
+      gameKey: 'dota 2',
+      scrollTop: 180,
+      searchQuery: '',
+      playStatus: 'all',
+      librarySort: 'title',
+    })
+  })
+
+  it('restores list view and filters from saved scroll state', async () => {
+    saveLibraryScrollRestore({
+      viewMode: 'list',
+      scrollTop: 0,
+      gameKey: 'dota 2',
+      searchQuery: 'dota',
+      selectedPlatforms: ['steam'],
+      playStatus: 'played',
+      librarySort: 'title',
+    })
+    getLibrary.mockResolvedValue(createMockLibrary())
+
+    renderGameLibrary()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-list')).toBeInTheDocument()
+    })
+
+    expect(screen.getByRole('button', { name: 'List view' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('searchbox', { name: 'Search games' })).toHaveValue('dota')
+    expect(screen.getByRole('button', { name: 'Played' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(screen.getByTestId('game-library-list')).getByText('Dota 2')).toBeInTheDocument()
   })
 })

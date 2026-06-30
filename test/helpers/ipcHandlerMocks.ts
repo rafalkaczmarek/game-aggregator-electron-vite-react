@@ -28,6 +28,7 @@ export const enrichLibraryWithMetacritic = vi.fn<
 >()
 export const getRecommendations = vi.fn<() => Promise<unknown>>()
 export const broadcastToRenderers = vi.fn<(channel: string, payload: unknown) => void>()
+export const fetchSteamStoreDescription = vi.fn<(appId: string) => Promise<string | null>>()
 
 vi.mock('electron', () => ({
   BrowserWindow: {
@@ -81,6 +82,10 @@ vi.mock('@electron/main/ipc/broadcast', () => ({
   broadcastToRenderers,
 }))
 
+vi.mock('@electron/scanners/steam/storeDetails', () => ({
+  fetchSteamStoreDescription,
+}))
+
 export async function registerIpcHandlers() {
   const { registerGameIpcHandlers } = await import('@electron/main/ipc/games')
   const { registerSettingsIpcHandlers } = await import('@electron/main/ipc/settings')
@@ -106,6 +111,7 @@ export function resetIpcHandlerMocks() {
   enrichLibraryWithMetacritic.mockReset()
   getRecommendations.mockReset()
   broadcastToRenderers.mockReset()
+  fetchSteamStoreDescription.mockReset()
   enrichLibraryWithMetacritic.mockImplementation(async (library, options) => {
     options?.onStart?.(library.games.length)
     options?.onProgress?.({ done: library.games.length, total: library.games.length, enriched: 0 })

@@ -1,29 +1,7 @@
 import { useCallback, useLayoutEffect, type RefObject } from 'react'
 import type { Virtualizer } from '@tanstack/react-virtual'
-import { findGameIndex, type LibraryScrollRestoreState } from '../lib/libraryScrollRestore'
-
-function applyLibraryScrollRestore(
-  games: { key: string }[],
-  scrollRestore: LibraryScrollRestoreState,
-  scrollElement: HTMLElement,
-  scrollToIndex: (index: number) => void,
-): void {
-  if (games.length === 0) return
-
-  if (scrollRestore.scrollTop > 0) {
-    scrollElement.scrollTop = scrollRestore.scrollTop
-  }
-
-  const gameLink = scrollElement.querySelector<HTMLElement>(
-    `[data-testid="game-link-${CSS.escape(scrollRestore.gameKey)}"]`,
-  )
-  if (gameLink) return
-
-  const gameIndex = findGameIndex(games, scrollRestore.gameKey)
-  if (gameIndex >= 0) {
-    scrollToIndex(gameIndex)
-  }
-}
+import { applyLibraryScrollRestore } from '../lib/applyLibraryScrollRestore'
+import type { LibraryScrollRestoreState } from '../lib/libraryScrollRestore'
 
 export function useLibraryScrollRestore(
   games: { key: string }[],
@@ -36,7 +14,7 @@ export function useLibraryScrollRestore(
     if (!scrollRestore || !scrollElement || games.length === 0) return
 
     const restore = () =>
-      applyLibraryScrollRestore(games, scrollRestore, scrollElement, scrollToIndex)
+      applyLibraryScrollRestore(games, scrollRestore, { scrollElement, scrollToIndex })
 
     restore()
     const frame = requestAnimationFrame(restore)

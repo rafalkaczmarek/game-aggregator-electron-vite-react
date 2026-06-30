@@ -3,6 +3,7 @@ import { createMockLibrary } from '@test/fixtures/games'
 import {
   broadcastToRenderers,
   enrichLibraryWithMetacritic,
+  fetchSteamStoreDescription,
   getGithubPat,
   getRecommendations,
   getSettingsState,
@@ -165,6 +166,31 @@ describe('ipc handlers', () => {
     expect(() => handlers.get('games:scan-platform')!(null, 'unknown')).toThrow(
       'Unknown platform: unknown',
     )
+  })
+
+  it('returns Steam store description for steam games', async () => {
+    fetchSteamStoreDescription.mockResolvedValue('MOBA classic.')
+
+    await expect(
+      handlers.get('games:get-game-description')!(null, {
+        platform: 'steam',
+        sourceId: '570',
+      }),
+    ).resolves.toEqual({
+      text: 'MOBA classic.',
+      source: 'steam',
+    })
+    expect(fetchSteamStoreDescription).toHaveBeenCalledWith('570')
+  })
+
+  it('returns null description for non-steam platforms', async () => {
+    await expect(
+      handlers.get('games:get-game-description')!(null, {
+        platform: 'gog',
+        sourceId: '1',
+      }),
+    ).resolves.toBeNull()
+    expect(fetchSteamStoreDescription).not.toHaveBeenCalled()
   })
 
   it('returns settings state', async () => {

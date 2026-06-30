@@ -85,4 +85,33 @@ describe('GameDetail', () => {
 
     expect(getGameDescription).not.toHaveBeenCalled()
   })
+
+  it('shows unavailable description for games without a Steam source id', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+
+    renderGameDetail('/library/cyberpunk%202077')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-detail-page')).toBeInTheDocument()
+    })
+
+    expect(getGameDescription).not.toHaveBeenCalled()
+    expect(screen.getByText('No description available for this game yet.')).toBeInTheDocument()
+  })
+
+  it('shows loading state before description resolves', async () => {
+    getLibrary.mockResolvedValue(createMockLibrary())
+    getGameDescription.mockImplementation(
+      () =>
+        new Promise(() => {
+          /* never resolves */
+        }),
+    )
+
+    renderGameDetail('/library/dota%202')
+
+    await waitFor(() => {
+      expect(screen.getByText('Loading description…')).toBeInTheDocument()
+    })
+  })
 })

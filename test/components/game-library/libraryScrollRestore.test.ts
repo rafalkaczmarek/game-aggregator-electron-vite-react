@@ -44,4 +44,11 @@ describe('libraryScrollRestore', () => {
 
     setItem.mockRestore()
   })
+
+  it('returns null when stored restore payload is invalid json', () => {
+    sessionStorage.setItem('game-library-scroll-restore', '{not-json')
+
+    expect(consumeLibraryScrollRestore()).toBeNull()
+    expect(sessionStorage.getItem('game-library-scroll-restore')).toBeNull()
+  })
 })

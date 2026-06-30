@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,10 +6,21 @@ import type { Game } from '@shared/types/game'
 import GameGridView from '@src/components/game-library/ui/GameGridView'
 import GameListView from '@src/components/game-library/ui/GameListView'
 import { groupGamesByTitle } from '@src/components/game-library/lib/format'
+import type { LibraryScrollRestoreState } from '@src/components/game-library/lib/libraryScrollRestore'
 import ViewToggle from '@src/components/game-library/ui/ViewToggle'
-import { sampleGames } from '@test/fixtures/games'
+import { createLargeMockLibrary, sampleGames } from '@test/fixtures/games'
 
 const groupedSampleGames = groupGamesByTitle(sampleGames)
+
+const listScrollRestore: LibraryScrollRestoreState = {
+  viewMode: 'list',
+  scrollTop: 260,
+  gameKey: 'dota 2',
+  searchQuery: '',
+  selectedPlatforms: [],
+  playStatus: 'all',
+  librarySort: 'title',
+}
 
 describe('game library views', () => {
   it('renders list view with titles, playtime, and platform badges', () => {
@@ -102,6 +113,30 @@ describe('game library views', () => {
     expect(within(grid).getByText('Epic')).toBeInTheDocument()
     expect(within(grid).getByText('2.5 hrs')).toBeInTheDocument()
     expect(within(grid).getByText('Installed')).toBeInTheDocument()
+  })
+
+  it('renders game links that point to the detail route', () => {
+    render(
+      <MemoryRouter>
+        <GameListView games={groupedSampleGames} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByTestId('game-link-dota 2')).toHaveAttribute('href', '/library/dota%202')
+  })
+
+  it('restores list scrollTop from scrollRestore prop', async () => {
+    render(
+      <MemoryRouter>
+        <GameListView games={groupGamesByTitle(createLargeMockLibrary(30).games)} scrollRestore={listScrollRestore} />
+      </MemoryRouter>,
+    )
+
+    const list = screen.getByTestId('game-library-list')
+
+    await waitFor(() => {
+      expect(list.scrollTop).toBe(260)
+    })
   })
 
   it('switches active state in view toggle', async () => {
