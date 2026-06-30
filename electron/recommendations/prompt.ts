@@ -1,6 +1,6 @@
 import type { LibrarySnapshot } from './librarySnapshot'
 import { createScopedLogger } from '../lib/logger'
-import { MAX_USER_MESSAGE_LENGTH } from '../../shared/types/recommendations'
+import { buildUserPreferenceLines } from './promptUserMessage'
 import {
   GITHUB_MODELS_INPUT_TOKEN_LIMIT,
   GITHUB_MODELS_PROMPT_TOKEN_BUDGET,
@@ -21,12 +21,6 @@ export const RECOMMENDATION_TOTAL = OWNED_LIMIT + DISCOVER_LIMIT
 
 const MIN_PLAYED = 8
 
-function normalizeUserMessage(userMessage?: string): string | undefined {
-  const trimmed = userMessage?.trim()
-  if (!trimmed) return undefined
-  return trimmed.slice(0, MAX_USER_MESSAGE_LENGTH)
-}
-
 function formatPlaytime(minutes: number): string {
   const hours = minutes / 60
   return hours >= 10 ? `${Math.round(hours)} h` : `${hours.toFixed(1)} h`
@@ -44,16 +38,7 @@ export function buildUserPrompt(
       `- ${entry.title} (${formatPlaytime(entry.playtimeMinutes)}, ${entry.platforms.join('/')})`,
   )
 
-  const preferenceLines = (() => {
-    const message = normalizeUserMessage(userMessage)
-    if (!message) return []
-    return [
-      '',
-      'DODATKOWE WSKAZÓWKI OD UŻYTKOWNIKA:',
-      message,
-      'Uwzględnij te preferencje przy wyborze rekomendacji.',
-    ]
-  })()
+  const preferenceLines = buildUserPreferenceLines(userMessage)
 
   const prompt = [
     'Jesteś asystentem rekomendacji gier. Znasz wyłącznie gry, w które użytkownik już grał (lista ZAGRANE).',
