@@ -11,5 +11,9 @@ export {
   isGroupedGamePlayed,
 } from './grouping'
 export { sortGamesByTitle, sortGroupedGames, sortGroupedGamesByTitle } from './sort'
-export { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './filters'
+export {
+  filterGamesByPlatforms,
+  filterGroupedGamesByPlayStatus,
+  filterGroupedGamesBySearchQuery,
+} from './filters'
 export type { GroupedGame, LibrarySort, PlayStatusFilter } from './types'

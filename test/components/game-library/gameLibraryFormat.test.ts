@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   filterGroupedGamesByPlayStatus,
+  filterGroupedGamesBySearchQuery,
   formatPlaytime,
   getGroupedGameCoverGame,
   getGroupedGameMetacritic,
@@ -228,6 +229,33 @@ describe('game library format helpers', () => {
     it('keeps only unplayed groups', () => {
       const unplayed = filterGroupedGamesByPlayStatus(groups, 'unplayed')
       expect(unplayed.map((group) => group.title)).toEqual(['Cyberpunk 2077'])
+    })
+  })
+
+  describe('filterGroupedGamesBySearchQuery', () => {
+    const groups = groupGamesByTitle(sampleGames)
+
+    it('returns all groups when query is empty', () => {
+      expect(filterGroupedGamesBySearchQuery(groups, '')).toHaveLength(3)
+      expect(filterGroupedGamesBySearchQuery(groups, '   ')).toHaveLength(3)
+    })
+
+    it('matches titles case-insensitively with partial query', () => {
+      const matches = filterGroupedGamesBySearchQuery(groups, 'DOTA')
+      expect(matches.map((group) => group.title)).toEqual(['Dota 2'])
+    })
+
+    it('matches titles ignoring colons and trademark symbols', () => {
+      const groupsWithColon = groupGamesByTitle([
+        {
+          id: 'steam-cod',
+          platform: 'steam',
+          title: 'Call of Duty®: Modern Warfare',
+          installed: false,
+        },
+      ])
+
+      expect(filterGroupedGamesBySearchQuery(groupsWithColon, 'modern warfare')).toHaveLength(1)
     })
   })
 

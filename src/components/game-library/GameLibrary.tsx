@@ -8,7 +8,11 @@ import type {
 } from '@shared/types/game'
 import { GAME_PLATFORMS } from '@shared/types/game'
 import RouteLoadingFallback from '@src/components/app-shell/ui/RouteLoadingFallback'
-import { filterGamesByPlatforms, filterGroupedGamesByPlayStatus } from './lib/filters'
+import {
+  filterGamesByPlatforms,
+  filterGroupedGamesByPlayStatus,
+  filterGroupedGamesBySearchQuery,
+} from './lib/filters'
 import { groupGamesByTitle } from './lib/grouping'
 import {
   applyMetacriticRatingUpdates,
@@ -20,6 +24,7 @@ import GameGridView from './ui/GameGridView'
 import GameListView from './ui/GameListView'
 import MetacriticEnrichmentStatus from './ui/MetacriticEnrichmentStatus'
 import PlatformFilter from './ui/PlatformFilter'
+import LibrarySearch from './ui/LibrarySearch'
 import LibrarySortControl from './ui/LibrarySortControl'
 import PlayStatusFilter from './ui/PlayStatusFilter'
 import ViewToggle, { type LibraryViewMode } from './ui/ViewToggle'
@@ -39,6 +44,7 @@ export default function GameLibrary() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([])
   const [playStatus, setPlayStatus] = useState<PlayStatusFilterValue>('all')
   const [librarySort, setLibrarySort] = useState<LibrarySort>('title')
+  const [searchQuery, setSearchQuery] = useState('')
   const [metacriticEnrichment, setMetacriticEnrichment] = useState<MetacriticEnrichmentUiState>({
     status: 'idle',
   })
@@ -167,14 +173,18 @@ export default function GameLibrary() {
           ? filterGamesByPlatforms(library.games, selectedPlatforms)
           : []
         return sortGroupedGames(
-          filterGroupedGamesByPlayStatus(groupGamesByTitle(filteredGames), playStatus),
+          filterGroupedGamesBySearchQuery(
+            filterGroupedGamesByPlayStatus(groupGamesByTitle(filteredGames), playStatus),
+            searchQuery,
+          ),
           librarySort,
         )
       }),
-    [library, selectedPlatforms, playStatus, librarySort],
+    [library, selectedPlatforms, playStatus, searchQuery, librarySort],
   )
 
-  const isFiltered = selectedPlatforms.length > 0 || playStatus !== 'all'
+  const isFiltered =
+    selectedPlatforms.length > 0 || playStatus !== 'all' || searchQuery.trim().length > 0
 
   return (
     <Profiler id={GAME_LIBRARY_PROFILER_ID} onRender={logGameLibraryRender}>
@@ -246,6 +256,7 @@ export default function GameLibrary() {
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <h3 className='text-base font-semibold text-slate-900'>Your games</h3>
                 <div className='flex flex-wrap items-center gap-3'>
+                  <LibrarySearch value={searchQuery} onChange={setSearchQuery} />
                   <PlatformFilter value={selectedPlatforms} onChange={setSelectedPlatforms} />
                   <PlayStatusFilter value={playStatus} onChange={setPlayStatus} />
                   <LibrarySortControl value={librarySort} onChange={setLibrarySort} />

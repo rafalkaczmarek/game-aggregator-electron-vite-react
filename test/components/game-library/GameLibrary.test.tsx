@@ -356,4 +356,42 @@ describe('GameLibrary', () => {
     expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
     expect(within(grid).queryByText('Cyberpunk 2077')).not.toBeInTheDocument()
   })
+
+  it('filters games by search query', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await waitForLibraryShell()
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-library-grid')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search games' }), 'dota')
+
+    const grid = screen.getByTestId('game-library-grid')
+    expect(within(grid).getAllByRole('article')).toHaveLength(1)
+    expect(within(grid).getByText('Dota 2')).toBeInTheDocument()
+    expect(screen.getByText(/\(filtered\)/i)).toBeInTheDocument()
+  })
+
+  it('shows empty filter state when search matches no games', async () => {
+    scanAll.mockResolvedValue(createMockLibrary())
+    const user = userEvent.setup()
+
+    render(<GameLibrary />)
+    await waitForLibraryShell()
+    await user.click(screen.getByRole('button', { name: 'Scan libraries' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('library-search')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search games' }), 'zelda')
+
+    expect(screen.getByText(/No games match the current filters/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('game-library-grid')).not.toBeInTheDocument()
+  })
 })
